@@ -69,26 +69,64 @@ public struct XcodeProjectParser: Sendable {
     }
 
     private func objectBlocks(in contents: String, isa: String) -> [String] {
-        let pattern = #"(?s)[A-Z0-9]+ /\* .*? \*/ = \{.*?isa = \#(isa);.*?\};"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else {
-            return []
+        var blocks: [String] = []
+        var searchRange = contents.startIndex..<contents.endIndex
+        let marker = "isa = \(isa);"
+
+        while let markerRange = contents.range(of: marker, range: searchRange) {
+            guard
+                let assignmentRange = contents.range(
+                    of: "= {",
+                    options: .backwards,
+                    range: contents.startIndex..<markerRange.lowerBound
+                )
+            else {
+                searchRange = markerRange.upperBound..<contents.endIndex
+                continue
+            }
+
+            let objectStart =
+                contents[..<assignmentRange.lowerBound].lastIndex(of: "\n")
+                .map { contents.index(after: $0) } ?? contents.startIndex
+            let braceStart = contents.index(assignmentRange.lowerBound, offsetBy: 2)
+
+            var depth = 0
+            var index = braceStart
+            var objectEnd: String.Index?
+            while index < contents.endIndex {
+                let character = contents[index]
+                if character == "{" {
+                    depth += 1
+                } else if character == "}" {
+                    depth -= 1
+                    if depth == 0 {
+                        objectEnd = contents.index(after: index)
+                        break
+                    }
+                }
+                index = contents.index(after: index)
+            }
+
+            if let objectEnd {
+                blocks.append(String(contents[objectStart..<objectEnd]))
+                searchRange = objectEnd..<contents.endIndex
+            } else {
+                searchRange = markerRange.upperBound..<contents.endIndex
+            }
         }
 
-        let range = NSRange(contents.startIndex..<contents.endIndex, in: contents)
-        return regex.matches(in: contents, range: range).compactMap { match in
-            Range(match.range, in: contents).map { String(contents[$0]) }
-        }
+        return blocks
     }
 
     private func value(named name: String, in block: String) -> String? {
-        let pattern = #"\b\#(name)\s*=\s*("?)([^";]+)\2;"#
+        let pattern = #"\b\#(name)\s*=\s*("?)([^";]+)\1;"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
             return nil
         }
 
         let range = NSRange(block.startIndex..<block.endIndex, in: block)
         guard let match = regex.firstMatch(in: block, range: range),
-            let valueRange = Range(match.range(at: 3), in: block)
+            let valueRange = Range(match.range(at: 2), in: block)
         else {
             return nil
         }
