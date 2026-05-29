@@ -2,4 +2,168 @@
 
 A SwiftPM health checker for real Xcode projects.
 
-PackageDoctor is in pre-1.0 development.
+PackageDoctor diagnoses dependency health issues in Xcode SwiftPM setups by comparing what your project asks for against what Package.resolved actually pins.
+
+Status: pre-1.0 development. PackageDoctor v0.x is read-only, does not update packages, and does not edit `project.pbxproj` files.
+
+## Why PackageDoctor Exists
+
+Many iOS and macOS teams do not manage dependencies through `Package.swift` alone. Real Xcode projects often include:
+
+- `.xcodeproj/project.pbxproj`
+- `.xcworkspace`
+- `Package.resolved` files inside project or workspace folders
+- SwiftPM dependencies configured in Xcode
+- UIKit, SwiftUI, and mixed UIKit/SwiftUI apps
+- multiple projects in one workspace
+
+PackageDoctor is dependency tooling, not UI tooling. It works from project metadata and resolved pins, regardless of whether the app uses UIKit, SwiftUI, or both.
+
+## What It Checks Today
+
+The current MVP scans for:
+
+- Xcode projects, workspaces, `Package.swift`, and `Package.resolved`
+- Xcode Swift package references in `project.pbxproj`
+- modern and legacy `Package.resolved` pin formats
+- missing `Package.resolved`
+- project references missing from resolved pins
+- stale resolved pins that are no longer referenced by the project
+- branch-based dependencies
+- revision-based dependencies
+- exact-version dependencies
+- duplicate package URL forms
+- suspicious identity mismatches
+
+PackageDoctor intentionally avoids network calls during normal scans.
+
+## Installation
+
+Build from source:
+
+```sh
+git clone https://github.com/crleonard/PackageDoctor.git
+cd PackageDoctor
+swift build -c release
+```
+
+Run the built executable:
+
+```sh
+.build/release/packagedoctor scan --path /path/to/project
+```
+
+Install with Mint:
+
+```sh
+mint install crleonard/PackageDoctor
+```
+
+Homebrew support is planned for a future release.
+
+## Usage
+
+```sh
+packagedoctor scan
+packagedoctor scan --path .
+packagedoctor scan --format text
+packagedoctor scan --format json
+packagedoctor scan --format markdown
+packagedoctor scan --fail-on error
+packagedoctor scan --fail-on warning
+packagedoctor scan --strict
+```
+
+`--strict` is equivalent to `--fail-on warning`.
+
+## Example Output
+
+```text
+PackageDoctor
+
+Path:
+  /Users/chris/project
+
+Projects:
+  MyApp.xcodeproj
+
+Swift packages:
+  12 referenced
+  12 resolved
+
+Health:
+  1 info
+  3 warnings
+  1 errors
+
+Errors:
+  x Firebase
+     firebase-ios-sdk is referenced by the Xcode project, but it is missing from Package.resolved.
+     Suggestion: Run xcodebuild -resolvePackageDependencies.
+
+Warnings:
+  ! Lottie
+     lottie-spm is pinned to branch 'main'.
+     Suggestion: Prefer a versioned release for reproducible builds.
+```
+
+Markdown output is designed for GitHub PR comments. JSON output is pretty-printed with sorted keys and uses the public `WorkspaceScanResult` model shape so automation can read projects, resolved packages, diagnostics, severities, rule identifiers, and suggestions.
+
+## GitHub Actions
+
+Example dependency health check:
+
+```yaml
+name: PackageDoctor
+
+on:
+  pull_request:
+
+jobs:
+  packagedoctor:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift run packagedoctor scan --format markdown --fail-on error
+```
+
+This repository also runs `swift build` and `swift test` in CI.
+
+## Roadmap
+
+Before a 1.0.0 release, PackageDoctor needs broader real-world fixture coverage and more validation against varied Xcode project shapes. Planned future work includes:
+
+- stale dependency checks
+- latest release checks
+- license checks
+- GitHub Actions PR comment mode
+- baseline file support
+- config file support
+- CocoaPods support
+- Carthage support
+- security advisory checks
+- optional fix commands
+
+Potential future `PackageDoctor.yml` shape:
+
+```yaml
+failOn:
+  - missingResolvedPackage
+  - branchDependency
+
+allow:
+  branchDependencies:
+    - InternalDesignSystem
+
+ignore:
+  packages:
+    - SomeLegacyPackage
+
+rules:
+  requirePackageResolved: true
+  allowExactVersions: true
+```
+
+## License
+
+PackageDoctor is released under the MIT License.
