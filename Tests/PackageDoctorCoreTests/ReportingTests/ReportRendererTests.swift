@@ -7,7 +7,9 @@ func rendersStableTextJSONAndMarkdownReports() throws {
     let result = WorkspaceScanResult(
         rootPath: "/tmp/project",
         projects: [ProjectScanResult(path: "/tmp/project/MyApp.xcodeproj")],
-        resolvedPackages: [ResolvedPackage(identity: "lottie-spm", location: "https://github.com/airbnb/lottie-spm.git")],
+        resolvedPackages: [
+            ResolvedPackage(identity: "lottie-spm", location: "https://github.com/airbnb/lottie-spm.git")
+        ],
         diagnostics: [
             Diagnostic(
                 rule: .branchDependency,
@@ -19,9 +21,9 @@ func rendersStableTextJSONAndMarkdownReports() throws {
         ]
     )
 
-    let text = try TextReportRenderer().render(result)
+    let text = TextReportRenderer().render(result)
     let json = try JSONReportRenderer().render(result)
-    let markdown = try MarkdownReportRenderer().render(result)
+    let markdown = MarkdownReportRenderer().render(result)
 
     #expect(text.contains("PackageDoctor"))
     #expect(text.contains("Warnings:"))

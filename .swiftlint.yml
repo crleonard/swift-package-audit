@@ -3,6 +3,7 @@ included:
   - Tests
 
 disabled_rules:
+  - function_body_length
   - trailing_comma
 
 line_length:

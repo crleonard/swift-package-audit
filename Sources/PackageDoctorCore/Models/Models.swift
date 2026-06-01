@@ -53,7 +53,7 @@ public enum PackageRequirement: Codable, Equatable, Sendable {
     case exactVersion(String)
     case branch(String)
     case revision(String)
-    case range(from: String?, to: String?)
+    case range(from: String?, upperBound: String?)
     case unknown(String?)
 
     public var kind: String {
@@ -76,8 +76,8 @@ public enum PackageRequirement: Codable, Equatable, Sendable {
             .branch(let value),
             .revision(let value):
             value
-        case .range(let from, let to):
-            [from, to].compactMap(\.self).joined(separator: "..<")
+        case .range(let from, let upperBound):
+            [from, upperBound].compactMap(\.self).joined(separator: "..<")
         case .unknown(let value):
             value
         }

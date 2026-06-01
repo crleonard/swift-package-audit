@@ -24,10 +24,14 @@ public struct DependencyHealthDiagnoser: Sendable {
                 Diagnostic(
                     rule: .packageManifestNotResolved,
                     severity: .info,
-                    message:
-                        "Package.swift was found, but dependency information was not resolved during this read-only scan.",
-                    suggestion:
-                        "Run swift package show-dependencies --format json separately if you need pure SwiftPM dependency details."
+                    message: """
+                        Package.swift was found, but dependency information was not resolved during this \
+                        read-only scan.
+                        """,
+                    suggestion: """
+                        Run swift package show-dependencies --format json separately if you need pure SwiftPM \
+                        dependency details.
+                        """
                 )
             )
         }
@@ -92,7 +96,10 @@ public struct DependencyHealthDiagnoser: Sendable {
                 packageIdentity: reference.identity,
                 projectPath: reference.projectPath,
                 message:
-                    "\(reference.identity) is referenced by the Xcode project, but it is missing from Package.resolved.",
+                    """
+                    \(reference.identity) is referenced by the Xcode project, but it is missing from \
+                    Package.resolved.
+                    """,
                 suggestion: "Run xcodebuild -resolvePackageDependencies."
             )
         }
@@ -115,7 +122,10 @@ public struct DependencyHealthDiagnoser: Sendable {
                 severity: .warning,
                 packageIdentity: resolved.identity,
                 message:
-                    "\(resolved.identity) is present in Package.resolved, but it is not referenced by the Xcode project.",
+                    """
+                    \(resolved.identity) is present in Package.resolved, but it is not referenced by the \
+                    Xcode project.
+                    """,
                 suggestion: "Remove stale resolved pins or re-resolve dependencies."
             )
         }

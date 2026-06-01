@@ -86,7 +86,7 @@ public struct JSONReportRenderer: ReportRendering {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(result)
-        return String(decoding: data, as: UTF8.self) + "\n"
+        return (String(data: data, encoding: .utf8) ?? "") + "\n"
     }
 }
 
@@ -107,9 +107,17 @@ public struct MarkdownReportRenderer: ReportRendering {
             lines.append("| info | none |  | No dependency health issues found. |  |")
         } else {
             for diagnostic in result.diagnostics {
-                lines.append(
-                    "| \(diagnostic.severity.rawValue) | \(diagnostic.rule.rawValue) | \(diagnostic.packageIdentity ?? "") | \(escape(diagnostic.message)) | \(escape(diagnostic.suggestion ?? "")) |"
-                )
+                let package = diagnostic.packageIdentity ?? ""
+                let message = escape(diagnostic.message)
+                let suggestion = escape(diagnostic.suggestion ?? "")
+                let columns = [
+                    diagnostic.severity.rawValue,
+                    diagnostic.rule.rawValue,
+                    package,
+                    message,
+                    suggestion,
+                ]
+                lines.append("| \(columns.joined(separator: " | ")) |")
             }
         }
 

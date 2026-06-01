@@ -37,9 +37,10 @@ public struct XcodeProjectParser: Sendable {
         )
     }
 
-    public func parsePackageReferences(in contents: String, projectPath: String? = nil)
-        -> [PackageReference]
-    {
+    public func parsePackageReferences(
+        in contents: String,
+        projectPath: String? = nil
+    ) -> [PackageReference] {
         objectBlocks(in: contents, isa: "XCRemoteSwiftPackageReference").compactMap { block in
             guard let repositoryURL = value(named: "repositoryURL", in: block) else {
                 return nil
@@ -154,7 +155,7 @@ public struct XcodeProjectParser: Sendable {
         case "revision":
             return .revision(revision ?? "")
         case "versionRange":
-            return .range(from: minimumVersion, to: maximumVersion)
+            return .range(from: minimumVersion, upperBound: maximumVersion)
         default:
             return .unknown(kind)
         }
