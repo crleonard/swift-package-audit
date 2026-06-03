@@ -114,6 +114,7 @@ public struct ProjectScanResult: Codable, Equatable, Sendable {
 }
 
 public struct WorkspaceScanResult: Codable, Equatable, Sendable {
+    public var schemaVersion: Int
     public var rootPath: String
     public var projects: [ProjectScanResult]
     public var workspacePaths: [String]
@@ -121,9 +122,11 @@ public struct WorkspaceScanResult: Codable, Equatable, Sendable {
     public var resolvedPackages: [ResolvedPackage]
     public var resolvedFilePaths: [String]
     public var diagnostics: [Diagnostic]
+    public var suppressedDiagnostics: [Diagnostic]
     public var infoMessages: [String]
 
     public init(
+        schemaVersion: Int = 1,
         rootPath: String,
         projects: [ProjectScanResult] = [],
         workspacePaths: [String] = [],
@@ -131,8 +134,10 @@ public struct WorkspaceScanResult: Codable, Equatable, Sendable {
         resolvedPackages: [ResolvedPackage] = [],
         resolvedFilePaths: [String] = [],
         diagnostics: [Diagnostic] = [],
+        suppressedDiagnostics: [Diagnostic] = [],
         infoMessages: [String] = []
     ) {
+        self.schemaVersion = schemaVersion
         self.rootPath = rootPath
         self.projects = projects
         self.workspacePaths = workspacePaths
@@ -140,11 +145,13 @@ public struct WorkspaceScanResult: Codable, Equatable, Sendable {
         self.resolvedPackages = resolvedPackages
         self.resolvedFilePaths = resolvedFilePaths
         self.diagnostics = diagnostics
+        self.suppressedDiagnostics = suppressedDiagnostics
         self.infoMessages = infoMessages
     }
 }
 
 public struct Diagnostic: Codable, Equatable, Sendable {
+    public var id: String
     public var rule: DiagnosticRule
     public var severity: DiagnosticSeverity
     public var packageIdentity: String?
@@ -160,12 +167,32 @@ public struct Diagnostic: Codable, Equatable, Sendable {
         message: String,
         suggestion: String? = nil
     ) {
+        self.id = Diagnostic.makeID(
+            rule: rule,
+            packageIdentity: packageIdentity,
+            projectPath: projectPath,
+            message: message
+        )
         self.rule = rule
         self.severity = severity
         self.packageIdentity = packageIdentity
         self.projectPath = projectPath
         self.message = message
         self.suggestion = suggestion
+    }
+
+    public static func makeID(
+        rule: DiagnosticRule,
+        packageIdentity: String?,
+        projectPath: String?,
+        message: String
+    ) -> String {
+        [
+            rule.rawValue,
+            packageIdentity?.lowercased() ?? "",
+            URL(fileURLWithPath: projectPath ?? "").lastPathComponent.lowercased(),
+            message.normalizedDiagnosticText,
+        ].joined(separator: "|").stablePackageDoctorHash
     }
 }
 
@@ -203,10 +230,19 @@ public enum DiagnosticRule: String, Codable, Sendable {
 public struct ScanConfiguration: Codable, Equatable, Sendable {
     public var path: String
     public var strict: Bool
+    public var configPath: String?
+    public var baselinePath: String?
 
-    public init(path: String = ".", strict: Bool = false) {
+    public init(
+        path: String = ".",
+        strict: Bool = false,
+        configPath: String? = nil,
+        baselinePath: String? = nil
+    ) {
         self.path = path
         self.strict = strict
+        self.configPath = configPath
+        self.baselinePath = baselinePath
     }
 }
 
@@ -214,4 +250,5 @@ public enum OutputFormat: String, CaseIterable, Codable, Sendable {
     case text
     case json
     case markdown
+    case prComment = "pr-comment"
 }
