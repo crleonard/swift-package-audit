@@ -34,6 +34,7 @@ public struct TextReportRenderer: ReportRendering {
             "  \(count(.info, in: result)) info",
             "  \(count(.warning, in: result)) warnings",
             "  \(count(.error, in: result)) errors",
+            "  \(result.suppressedDiagnostics.count) suppressed",
         ]
 
         appendSection("Errors", severity: .error, result: result, lines: &lines)
@@ -130,6 +131,58 @@ public struct MarkdownReportRenderer: ReportRendering {
     }
 }
 
+public struct PRCommentReportRenderer: ReportRendering {
+    public init() {}
+
+    public func render(_ result: WorkspaceScanResult) -> String {
+        let errorCount = result.diagnostics.filter { $0.severity == .error }.count
+        let warningCount = result.diagnostics.filter { $0.severity == .warning }.count
+        let infoCount = result.diagnostics.filter { $0.severity == .info }.count
+        var lines: [String] = [
+            "## PackageDoctor",
+            "",
+            "| Errors | Warnings | Info | Suppressed |",
+            "| ---: | ---: | ---: | ---: |",
+            "| \(errorCount) | \(warningCount) | \(infoCount) | \(result.suppressedDiagnostics.count) |",
+            "",
+        ]
+
+        if result.diagnostics.isEmpty {
+            lines.append("No active dependency health issues found.")
+        } else {
+            lines.append("<details open>")
+            lines.append("<summary>Dependency health findings</summary>")
+            lines.append("")
+            lines.append(contentsOf: markdownBody(for: result))
+            lines.append("")
+            lines.append("</details>")
+        }
+
+        if !result.suppressedDiagnostics.isEmpty {
+            lines += [
+                "",
+                "<details>",
+                "<summary>Suppressed by baseline</summary>",
+                "",
+            ]
+            for diagnostic in result.suppressedDiagnostics {
+                let package = diagnostic.packageIdentity.map { " \($0)" } ?? ""
+                lines.append("- `\(diagnostic.rule.rawValue)`\(package): \(diagnostic.message)")
+            }
+            lines += ["", "</details>"]
+        }
+
+        return lines.joined(separator: "\n") + "\n"
+    }
+
+    private func markdownBody(for result: WorkspaceScanResult) -> [String] {
+        let lines = MarkdownReportRenderer().render(result)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .components(separatedBy: .newlines)
+        return Array(lines.dropFirst(2))
+    }
+}
+
 public enum ReportRendererFactory {
     public static func renderer(for format: OutputFormat) -> ReportRendering {
         switch format {
@@ -139,6 +192,8 @@ public enum ReportRendererFactory {
             JSONReportRenderer()
         case .markdown:
             MarkdownReportRenderer()
+        case .prComment:
+            PRCommentReportRenderer()
         }
     }
 }
