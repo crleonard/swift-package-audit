@@ -63,6 +63,49 @@ func scansWorkspaceWithMultipleProjects() throws {
 }
 
 @Test
+func scansProjectsReferencedByWorkspaceXML() throws {
+    let root = try makeTemporaryDirectory()
+    let workspace = root.appendingPathComponent("Container/App.xcworkspace")
+    try write(
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Workspace version="1.0">
+          <FileRef location="group:../Projects/MyApp.xcodeproj"></FileRef>
+        </Workspace>
+        """,
+        to: workspace.appendingPathComponent("contents.xcworkspacedata")
+    )
+
+    let project = root.appendingPathComponent("Projects/MyApp.xcodeproj")
+    try write(
+        pbxproj(
+            packageBlocks: packageReferenceBlock(
+                url: "https://github.com/apple/swift-argument-parser.git",
+                requirement: """
+                  kind = upToNextMajorVersion;
+                  minimumVersion = 1.0.0;
+                """
+            )
+        ),
+        to: project.appendingPathComponent("project.pbxproj")
+    )
+    try write(
+        modernResolved(
+            resolvedPin(
+                identity: "swift-argument-parser",
+                location: "https://github.com/apple/swift-argument-parser.git"
+            )
+        ),
+        to: root.appendingPathComponent("Package.resolved")
+    )
+
+    let result = PackageDoctorScanner().scan(configuration: ScanConfiguration(path: root.path))
+
+    #expect(result.projects.map { URL(fileURLWithPath: $0.path).lastPathComponent } == ["MyApp.xcodeproj"])
+    #expect(result.projects.flatMap(\.packageReferences).count == 1)
+}
+
+@Test
 func reportsPurePackageSwiftAsInformationalWhenNoDependencyGraphIsResolved() throws {
     let root = try makeTemporaryDirectory()
     try write("// swift-tools-version: 6.0\n", to: root.appendingPathComponent("Package.swift"))
