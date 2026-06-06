@@ -1,0 +1,19 @@
+name: PackageDoctor
+
+on:
+  pull_request:
+
+jobs:
+  packagedoctor:
+    runs-on: macos-15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run PackageDoctor
+        run: swift run packagedoctor scan --format pr-comment --fail-on error > packagedoctor.md
+      - name: Comment on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: packagedoctor.md

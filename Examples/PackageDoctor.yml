@@ -1,0 +1,18 @@
+failOn:
+  - missingPackageResolved
+  - packageReferencedButNotResolved
+  - branchDependency
+
+allow:
+  branchDependencies:
+    - InternalDesignSystem
+
+ignore:
+  packages:
+    - SomeLegacyPackage
+  rules:
+    - exactVersionDependency
+
+rules:
+  requirePackageResolved: true
+  allowExactVersions: false

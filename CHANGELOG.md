@@ -2,11 +2,18 @@
 
 PackageDoctor is in pre-1.0 development. Do not treat any v0.x milestone tag as a production-ready 1.0 release.
 
+## v1.0.0
+
+- Add schema-versioned JSON output with stable diagnostic IDs.
+- Add `PackageDoctor.yml` config support.
+- Add diagnostic baseline read/write support.
+- Add `pr-comment` output for GitHub pull request workflows.
+- Improve `.xcworkspace` parsing by reading `contents.xcworkspacedata` project references.
+- Expand tests for config, baselines, PR comments, schema fields, and workspace layouts.
+
 ## Unreleased
 
-- Continue validating PackageDoctor against real Xcode projects.
-- Expand parser fixture coverage.
-- Prepare configuration and baseline designs.
+- Continue validating PackageDoctor against additional real-world Xcode projects.
 
 ## v0.7.0-docs
 

@@ -4,7 +4,7 @@ A SwiftPM health checker for real Xcode projects.
 
 PackageDoctor diagnoses dependency health issues in Xcode SwiftPM setups by comparing what your project asks for against what Package.resolved actually pins.
 
-Status: pre-1.0 development. PackageDoctor v0.x is read-only, does not update packages, and does not edit `project.pbxproj` files.
+Status: release candidate. PackageDoctor is read-only, does not update packages, and does not edit `project.pbxproj` files.
 
 ## Why PackageDoctor Exists
 
@@ -34,6 +34,9 @@ The current MVP scans for:
 - exact-version dependencies
 - duplicate package URL forms
 - suspicious identity mismatches
+- config-based rule and package ignores
+- diagnostic baselines for existing known issues
+- GitHub PR comment output
 
 PackageDoctor intentionally avoids network calls during normal scans.
 
@@ -69,9 +72,13 @@ packagedoctor scan --path .
 packagedoctor scan --format text
 packagedoctor scan --format json
 packagedoctor scan --format markdown
+packagedoctor scan --format pr-comment
 packagedoctor scan --fail-on error
 packagedoctor scan --fail-on warning
 packagedoctor scan --strict
+packagedoctor scan --config PackageDoctor.yml
+packagedoctor scan --baseline PackageDoctorBaseline.json
+packagedoctor scan --write-baseline PackageDoctorBaseline.json
 ```
 
 `--strict` is equivalent to `--fail-on warning`.
@@ -107,7 +114,48 @@ Warnings:
      Suggestion: Prefer a versioned release for reproducible builds.
 ```
 
-Markdown output is designed for GitHub PR comments. JSON output is pretty-printed with sorted keys and uses the public `WorkspaceScanResult` model shape so automation can read projects, resolved packages, diagnostics, severities, rule identifiers, and suggestions.
+Markdown output is designed for general reports. `pr-comment` output is designed for GitHub pull request comments. JSON output is pretty-printed with sorted keys and uses schema version `1`; see [Docs/JSON_SCHEMA.md](Docs/JSON_SCHEMA.md).
+
+## Configuration
+
+PackageDoctor automatically reads `PackageDoctor.yml` from the scan root when present. A config path can also be supplied explicitly:
+
+```sh
+packagedoctor scan --config PackageDoctor.yml
+```
+
+Supported config:
+
+```yaml
+failOn:
+  - missingPackageResolved
+  - branchDependency
+
+allow:
+  branchDependencies:
+    - InternalDesignSystem
+
+ignore:
+  packages:
+    - SomeLegacyPackage
+  rules:
+    - exactVersionDependency
+
+rules:
+  requirePackageResolved: true
+  allowExactVersions: false
+```
+
+## Baselines
+
+Use baselines when adopting PackageDoctor in a project with existing known issues:
+
+```sh
+packagedoctor scan --write-baseline PackageDoctorBaseline.json
+packagedoctor scan --baseline PackageDoctorBaseline.json --fail-on warning
+```
+
+Baseline-matched findings are reported as suppressed diagnostics in JSON and PR comment output.
 
 ## GitHub Actions
 
@@ -124,45 +172,22 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - run: swift run packagedoctor scan --format markdown --fail-on error
+      - run: swift run packagedoctor scan --format pr-comment --fail-on error
 ```
 
 This repository also runs `swift build` and `swift test` in CI.
 
 ## Roadmap
 
-Before a 1.0.0 release, PackageDoctor needs broader real-world fixture coverage and more validation against varied Xcode project shapes. Planned future work includes:
+PackageDoctor is ready for 1.0 release validation. Planned post-1.0 work includes:
 
 - stale dependency checks
 - latest release checks
 - license checks
-- GitHub Actions PR comment mode
-- baseline file support
-- config file support
 - CocoaPods support
 - Carthage support
 - security advisory checks
 - optional fix commands
-
-Potential future `PackageDoctor.yml` shape:
-
-```yaml
-failOn:
-  - missingResolvedPackage
-  - branchDependency
-
-allow:
-  branchDependencies:
-    - InternalDesignSystem
-
-ignore:
-  packages:
-    - SomeLegacyPackage
-
-rules:
-  requirePackageResolved: true
-  allowExactVersions: true
-```
 
 ## License
 
