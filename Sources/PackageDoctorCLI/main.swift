@@ -36,6 +36,9 @@ struct Scan: ParsableCommand {
     @Option(name: .long, help: "Write the current active diagnostics to a baseline JSON file.")
     var writeBaseline: String?
 
+    @Flag(name: .customLong("check"), help: "Opt in to networked remote tag checks for current package versions.")
+    var checkVersions = false
+
     @Flag(name: .long, help: "Equivalent to --fail-on warning.")
     var strict = false
 
@@ -45,7 +48,8 @@ struct Scan: ParsableCommand {
             path: path,
             strict: strict,
             configPath: config,
-            baselinePath: writeBaseline == nil ? baseline : nil
+            baselinePath: writeBaseline == nil ? baseline : nil,
+            checkVersions: checkVersions
         )
         let result = scanner.scan(configuration: configuration)
 

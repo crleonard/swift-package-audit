@@ -14,4 +14,5 @@ PackageDoctor is ready for 1.0 release validation. The JSON/reporting contracts 
 - CocoaPods support.
 - Carthage support.
 - Security advisory checks.
+- More package-host-specific release intelligence beyond Git tags.
 - Optional fix commands.

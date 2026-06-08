@@ -21,6 +21,7 @@ packagedoctor scan --format json
   "packageManifestPaths": [],
   "resolvedPackages": [],
   "resolvedFilePaths": [],
+  "versionChecks": [],
   "diagnostics": [],
   "suppressedDiagnostics": [],
   "infoMessages": []
@@ -57,6 +58,7 @@ Known rule identifiers:
 - `packageIdentityMismatch`
 - `packageManifestNotResolved`
 - `parseError`
+- `outdatedVersion`
 
 ## Severity
 
@@ -76,3 +78,20 @@ packagedoctor scan --baseline PackageDoctorBaseline.json
 ```
 
 Diagnostics matched by the baseline are moved from `diagnostics` to `suppressedDiagnostics`.
+
+## Version Checks
+
+`versionChecks` is populated only when scans run with `--check`.
+
+```json
+{
+  "packageIdentity": "example",
+  "location": "https://github.com/example/example.git",
+  "currentVersion": "1.0.0",
+  "latestVersion": "1.2.1",
+  "versionsBehind": 3,
+  "newerVersions": ["1.1.0", "1.2.0", "1.2.1"]
+}
+```
+
+When a check fails for a package, `error` is populated and no `outdatedVersion` diagnostic is emitted for that package.

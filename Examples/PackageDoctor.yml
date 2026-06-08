@@ -2,6 +2,7 @@ failOn:
   - missingPackageResolved
   - packageReferencedButNotResolved
   - branchDependency
+  - outdatedVersion
 
 allow:
   branchDependencies:

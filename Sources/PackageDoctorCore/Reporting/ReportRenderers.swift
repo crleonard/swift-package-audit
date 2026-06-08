@@ -40,6 +40,7 @@ public struct TextReportRenderer: ReportRendering {
         appendSection("Errors", severity: .error, result: result, lines: &lines)
         appendSection("Warnings", severity: .warning, result: result, lines: &lines)
         appendSection("Info", severity: .info, result: result, lines: &lines)
+        appendVersionChecks(result.versionChecks, lines: &lines)
 
         return lines.joined(separator: "\n") + "\n"
     }
@@ -76,6 +77,32 @@ public struct TextReportRenderer: ReportRendering {
         case .info: "i"
         case .warning: "!"
         case .error: "x"
+        }
+    }
+
+    private func appendVersionChecks(_ checks: [PackageVersionCheck], lines: inout [String]) {
+        guard !checks.isEmpty else {
+            return
+        }
+
+        lines += ["", "Version checks:"]
+        for check in checks {
+            if let error = check.error {
+                lines.append("  ! \(check.packageIdentity)")
+                lines.append("     Could not check \(check.currentVersion): \(error)")
+            } else if let latestVersion = check.latestVersion, check.versionsBehind > 0 {
+                lines.append("  ! \(check.packageIdentity)")
+                lines.append(
+                    """
+                         Current: \(check.currentVersion), latest: \(latestVersion), \
+                    \(check.versionsBehind) release tags behind.
+                    """
+                )
+                lines.append("     Newer versions: \(check.newerVersions.joined(separator: ", "))")
+            } else {
+                lines.append("  i \(check.packageIdentity)")
+                lines.append("     Current: \(check.currentVersion), no newer release tags found.")
+            }
         }
     }
 }
@@ -122,12 +149,39 @@ public struct MarkdownReportRenderer: ReportRendering {
             }
         }
 
+        appendVersionChecks(result.versionChecks, lines: &lines)
+
         return lines.joined(separator: "\n") + "\n"
     }
 
     private func escape(_ value: String) -> String {
         value.replacingOccurrences(of: "|", with: "\\|")
             .replacingOccurrences(of: "\n", with: " ")
+    }
+
+    private func appendVersionChecks(_ checks: [PackageVersionCheck], lines: inout [String]) {
+        guard !checks.isEmpty else {
+            return
+        }
+
+        lines += [
+            "",
+            "### Version Checks",
+            "",
+            "| Package | Current | Latest | Behind | Newer Versions |",
+            "| --- | --- | --- | ---: | --- |",
+        ]
+
+        for check in checks {
+            let columns = [
+                check.packageIdentity,
+                check.currentVersion,
+                check.latestVersion ?? "-",
+                "\(check.versionsBehind)",
+                escape(check.newerVersions.joined(separator: ", ")),
+            ]
+            lines.append("| \(columns.joined(separator: " | ")) |")
+        }
     }
 }
 

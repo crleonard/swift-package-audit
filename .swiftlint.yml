@@ -5,6 +5,7 @@ included:
 disabled_rules:
   - function_body_length
   - trailing_comma
+  - type_body_length
 
 line_length:
   warning: 120

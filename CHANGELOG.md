@@ -8,6 +8,7 @@ PackageDoctor is in pre-1.0 development. Do not treat any v0.x milestone tag as 
 - Add `PackageDoctor.yml` config support.
 - Add diagnostic baseline read/write support.
 - Add `pr-comment` output for GitHub pull request workflows.
+- Add optional `--check` remote tag version checks.
 - Improve `.xcworkspace` parsing by reading `contents.xcworkspacedata` project references.
 - Expand tests for config, baselines, PR comments, schema fields, and workspace layouts.
 

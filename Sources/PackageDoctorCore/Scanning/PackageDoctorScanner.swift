@@ -7,6 +7,7 @@ public struct PackageDoctorScanner {
     private let diagnoser: DependencyHealthDiagnoser
     private let configLoader: PackageDoctorConfigLoader
     private let baselineStore: DiagnosticBaselineStore
+    private let versionChecker: PackageVersionChecking
 
     public init(
         fileManager: FileManager = .default,
@@ -14,7 +15,8 @@ public struct PackageDoctorScanner {
         resolvedParser: PackageResolvedParser = PackageResolvedParser(),
         diagnoser: DependencyHealthDiagnoser = DependencyHealthDiagnoser(),
         configLoader: PackageDoctorConfigLoader = PackageDoctorConfigLoader(),
-        baselineStore: DiagnosticBaselineStore = DiagnosticBaselineStore()
+        baselineStore: DiagnosticBaselineStore = DiagnosticBaselineStore(),
+        versionChecker: PackageVersionChecking = PackageVersionChecker()
     ) {
         self.fileManager = fileManager
         self.projectParser = projectParser
@@ -22,6 +24,7 @@ public struct PackageDoctorScanner {
         self.diagnoser = diagnoser
         self.configLoader = configLoader
         self.baselineStore = baselineStore
+        self.versionChecker = versionChecker
     }
 
     public func scan(configuration: ScanConfiguration) -> WorkspaceScanResult {
@@ -62,11 +65,16 @@ public struct PackageDoctorScanner {
             }
         }
 
-        let rawDiagnostics = diagnoser.diagnose(
+        let versionChecks = configuration.checkVersions
+            ? versionChecker.check(resolvedPackages: resolvedPackages)
+            : []
+
+        var rawDiagnostics = diagnoser.diagnose(
             projects: projects,
             resolvedPackages: resolvedPackages,
             packageManifestPaths: inventory.packageManifestURLs.map(\.path)
         )
+        rawDiagnostics.append(contentsOf: versionDiagnostics(from: versionChecks))
         let filteredDiagnostics = applyConfig(config, to: rawDiagnostics)
         let (diagnostics, suppressedDiagnostics) = applyBaseline(baseline, to: filteredDiagnostics)
 
@@ -77,6 +85,7 @@ public struct PackageDoctorScanner {
             packageManifestPaths: inventory.packageManifestURLs.map(\.path),
             resolvedPackages: resolvedPackages,
             resolvedFilePaths: inventory.resolvedURLs.map(\.path),
+            versionChecks: versionChecks,
             diagnostics: diagnostics,
             suppressedDiagnostics: suppressedDiagnostics,
             infoMessages: infoMessages
@@ -262,6 +271,27 @@ public struct PackageDoctorScanner {
         let suppressed = diagnostics.filter { baselineIDs.contains($0.id) }
         let active = diagnostics.filter { !baselineIDs.contains($0.id) }
         return (active, suppressed)
+    }
+
+    private func versionDiagnostics(from checks: [PackageVersionCheck]) -> [Diagnostic] {
+        checks.compactMap { check in
+            guard check.versionsBehind > 0, let latestVersion = check.latestVersion else {
+                return nil
+            }
+
+            let versions = check.newerVersions.joined(separator: ", ")
+            return Diagnostic(
+                rule: .outdatedVersion,
+                severity: .warning,
+                packageIdentity: check.packageIdentity,
+                message:
+                    """
+                    \(check.packageIdentity) is on \(check.currentVersion); latest is \(latestVersion) \
+                    (\(check.versionsBehind) release tags behind: \(versions)).
+                    """,
+                suggestion: "Review the package release notes and update when ready."
+            )
+        }
     }
 
     private func shouldSkip(_ url: URL) -> Bool {

@@ -37,8 +37,9 @@ The current MVP scans for:
 - config-based rule and package ignores
 - diagnostic baselines for existing known issues
 - GitHub PR comment output
+- optional remote tag checks for newer package versions
 
-PackageDoctor intentionally avoids network calls during normal scans.
+PackageDoctor intentionally avoids network calls during normal scans. Remote version checks only run when you pass `--check`.
 
 ## Installation
 
@@ -76,6 +77,7 @@ packagedoctor scan --format pr-comment
 packagedoctor scan --fail-on error
 packagedoctor scan --fail-on warning
 packagedoctor scan --strict
+packagedoctor scan --check
 packagedoctor scan --config PackageDoctor.yml
 packagedoctor scan --baseline PackageDoctorBaseline.json
 packagedoctor scan --write-baseline PackageDoctorBaseline.json
@@ -156,6 +158,22 @@ packagedoctor scan --baseline PackageDoctorBaseline.json --fail-on warning
 ```
 
 Baseline-matched findings are reported as suppressed diagnostics in JSON and PR comment output.
+
+## Optional Version Checks
+
+PackageDoctor does not contact package hosts during normal scans. To opt in to remote tag checks, run:
+
+```sh
+packagedoctor scan --check
+```
+
+This uses `git ls-remote --tags --refs` for packages that already have a version in `Package.resolved`. PackageDoctor compares stable semantic version tags against the pinned version and reports findings like:
+
+```text
+Package is on 1.0.0; latest is 1.2.1 (3 release tags behind: 1.1.0, 1.2.0, 1.2.1).
+```
+
+Prerelease tags are ignored in this first version-check implementation.
 
 ## GitHub Actions
 

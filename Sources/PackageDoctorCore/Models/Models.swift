@@ -121,6 +121,7 @@ public struct WorkspaceScanResult: Codable, Equatable, Sendable {
     public var packageManifestPaths: [String]
     public var resolvedPackages: [ResolvedPackage]
     public var resolvedFilePaths: [String]
+    public var versionChecks: [PackageVersionCheck]
     public var diagnostics: [Diagnostic]
     public var suppressedDiagnostics: [Diagnostic]
     public var infoMessages: [String]
@@ -133,6 +134,7 @@ public struct WorkspaceScanResult: Codable, Equatable, Sendable {
         packageManifestPaths: [String] = [],
         resolvedPackages: [ResolvedPackage] = [],
         resolvedFilePaths: [String] = [],
+        versionChecks: [PackageVersionCheck] = [],
         diagnostics: [Diagnostic] = [],
         suppressedDiagnostics: [Diagnostic] = [],
         infoMessages: [String] = []
@@ -144,9 +146,38 @@ public struct WorkspaceScanResult: Codable, Equatable, Sendable {
         self.packageManifestPaths = packageManifestPaths
         self.resolvedPackages = resolvedPackages
         self.resolvedFilePaths = resolvedFilePaths
+        self.versionChecks = versionChecks
         self.diagnostics = diagnostics
         self.suppressedDiagnostics = suppressedDiagnostics
         self.infoMessages = infoMessages
+    }
+}
+
+public struct PackageVersionCheck: Codable, Equatable, Sendable {
+    public var packageIdentity: String
+    public var location: String
+    public var currentVersion: String
+    public var latestVersion: String?
+    public var versionsBehind: Int
+    public var newerVersions: [String]
+    public var error: String?
+
+    public init(
+        packageIdentity: String,
+        location: String,
+        currentVersion: String,
+        latestVersion: String? = nil,
+        versionsBehind: Int = 0,
+        newerVersions: [String] = [],
+        error: String? = nil
+    ) {
+        self.packageIdentity = packageIdentity
+        self.location = location
+        self.currentVersion = currentVersion
+        self.latestVersion = latestVersion
+        self.versionsBehind = versionsBehind
+        self.newerVersions = newerVersions
+        self.error = error
     }
 }
 
@@ -225,6 +256,7 @@ public enum DiagnosticRule: String, Codable, Sendable {
     case packageIdentityMismatch
     case packageManifestNotResolved
     case parseError
+    case outdatedVersion
 }
 
 public struct ScanConfiguration: Codable, Equatable, Sendable {
@@ -232,17 +264,20 @@ public struct ScanConfiguration: Codable, Equatable, Sendable {
     public var strict: Bool
     public var configPath: String?
     public var baselinePath: String?
+    public var checkVersions: Bool
 
     public init(
         path: String = ".",
         strict: Bool = false,
         configPath: String? = nil,
-        baselinePath: String? = nil
+        baselinePath: String? = nil,
+        checkVersions: Bool = false
     ) {
         self.path = path
         self.strict = strict
         self.configPath = configPath
         self.baselinePath = baselinePath
+        self.checkVersions = checkVersions
     }
 }
 
