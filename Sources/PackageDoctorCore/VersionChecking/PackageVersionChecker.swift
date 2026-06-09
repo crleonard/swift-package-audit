@@ -48,12 +48,21 @@ public struct PackageVersionChecker: PackageVersionChecking {
 }
 
 public struct GitRemoteTagProvider: GitTagProviding {
-    public init() {}
+    private let timeoutSeconds: Double
+
+    public init(timeoutSeconds: Double = 10) {
+        self.timeoutSeconds = timeoutSeconds
+    }
 
     public func tags(for repositoryURL: String) throws -> [String] {
+        let normalizedURL = PackageURLNormalizer.normalize(repositoryURL).normalizedURL
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = ["git", "ls-remote", "--tags", "--refs", repositoryURL]
+        process.arguments = ["git", "ls-remote", "--tags", "--refs", normalizedURL]
+        process.environment = [
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_SSH_COMMAND": "ssh -o BatchMode=yes -o ConnectTimeout=10",
+        ]
 
         let outputPipe = Pipe()
         let errorPipe = Pipe()
@@ -61,7 +70,16 @@ public struct GitRemoteTagProvider: GitTagProviding {
         process.standardError = errorPipe
 
         try process.run()
-        process.waitUntilExit()
+        let semaphore = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            process.waitUntilExit()
+            semaphore.signal()
+        }
+
+        if semaphore.wait(timeout: .now() + timeoutSeconds) == .timedOut {
+            process.terminate()
+            throw VersionCheckError.timedOut(repositoryURL)
+        }
 
         let output = String(data: outputPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
         let error = String(data: errorPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
@@ -78,11 +96,14 @@ public struct GitRemoteTagProvider: GitTagProviding {
 
 public enum VersionCheckError: Error, LocalizedError {
     case gitFailed(String)
+    case timedOut(String)
 
     public var errorDescription: String? {
         switch self {
         case .gitFailed(let message):
             message.isEmpty ? "git ls-remote failed" : message
+        case .timedOut(let repositoryURL):
+            "Timed out checking tags for \(repositoryURL)"
         }
     }
 }
