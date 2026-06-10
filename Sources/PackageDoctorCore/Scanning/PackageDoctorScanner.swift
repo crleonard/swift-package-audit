@@ -66,7 +66,11 @@ public struct PackageDoctorScanner {
         }
 
         let versionChecks = configuration.checkVersions
-            ? versionChecker.check(resolvedPackages: resolvedPackages)
+            ? annotateVersionChecks(
+                versionChecker.check(resolvedPackages: resolvedPackages),
+                projects: projects,
+                resolvedPackages: resolvedPackages
+            )
             : []
 
         var rawDiagnostics = diagnoser.diagnose(
@@ -280,6 +284,7 @@ public struct PackageDoctorScanner {
             }
 
             let versions = check.newerVersions.joined(separator: ", ")
+            let requirement = check.requirementNote.map { " \($0)" } ?? ""
             return Diagnostic(
                 rule: .outdatedVersion,
                 severity: .warning,
@@ -287,16 +292,113 @@ public struct PackageDoctorScanner {
                 message:
                     """
                     \(check.packageIdentity) is on \(check.currentVersion); latest is \(latestVersion) \
-                    (\(check.versionsBehind) release tags behind: \(versions)).
+                    (\(check.versionsBehind) release tags behind: \(versions)).\(requirement)
                     """,
                 suggestion: "Review the package release notes and update when ready."
             )
         }
     }
 
+    private func annotateVersionChecks(
+        _ checks: [PackageVersionCheck],
+        projects: [ProjectScanResult],
+        resolvedPackages: [ResolvedPackage]
+    ) -> [PackageVersionCheck] {
+        let references = projects.flatMap(\.packageReferences)
+        return checks.map { check in
+            guard let resolved = resolvedPackages.first(where: { $0.identity == check.packageIdentity }),
+                let reference = matchingReference(for: resolved, references: references)
+            else {
+                return check
+            }
+
+            return annotated(check, requirement: reference.requirement)
+        }
+    }
+
+    private func matchingReference(
+        for resolved: ResolvedPackage,
+        references: [PackageReference]
+    ) -> PackageReference? {
+        let resolvedURL = PackageURLNormalizer.normalize(resolved.location)
+        return references.first { reference in
+            reference.identity.lowercased() == resolved.identity.lowercased()
+                || PackageURLNormalizer.normalize(reference.repositoryURL).normalizedURL == resolvedURL.normalizedURL
+        }
+    }
+
+    private func annotated(
+        _ check: PackageVersionCheck,
+        requirement: PackageRequirement
+    ) -> PackageVersionCheck {
+        var annotated = check
+        annotated.requirementKind = requirement.kind
+        annotated.requirementValue = requirement.displayValue
+
+        guard let latestVersion = check.latestVersion,
+            let latest = SemanticVersion(latestVersion)
+        else {
+            return annotated
+        }
+
+        let satisfies = requirement.allows(latest)
+        annotated.latestSatisfiesRequirement = satisfies
+        annotated.requirementNote = requirementNote(requirement: requirement, latestSatisfiesRequirement: satisfies)
+        return annotated
+    }
+
+    private func requirementNote(
+        requirement: PackageRequirement,
+        latestSatisfiesRequirement: Bool?
+    ) -> String? {
+        guard let latestSatisfiesRequirement else {
+            return "The project requirement '\(requirement.kind)' could not be evaluated."
+        }
+
+        return latestSatisfiesRequirement
+            ? "The existing \(requirement.kind) requirement allows the latest version."
+            : "The existing \(requirement.kind) requirement does not allow the latest version."
+    }
+
     private func shouldSkip(_ url: URL) -> Bool {
         let skipped = [".build", "DerivedData", ".git"]
         return skipped.contains(url.lastPathComponent)
+    }
+}
+
+private extension PackageRequirement {
+    func allows(_ version: SemanticVersion) -> Bool? {
+        switch self {
+        case .upToNextMajorVersion(let value):
+            guard let lowerBound = SemanticVersion(value) else {
+                return nil
+            }
+            let upperBound = SemanticVersion(major: lowerBound.major + 1, minor: 0, patch: 0)
+            return version >= lowerBound && version < upperBound
+        case .upToNextMinorVersion(let value):
+            guard let lowerBound = SemanticVersion(value) else {
+                return nil
+            }
+            let upperBound = SemanticVersion(
+                major: lowerBound.major,
+                minor: lowerBound.minor + 1,
+                patch: 0
+            )
+            return version >= lowerBound && version < upperBound
+        case .exactVersion(let value):
+            guard let exact = SemanticVersion(value) else {
+                return nil
+            }
+            return version == exact
+        case .range(let from, let upperBound):
+            let lower = from.flatMap { SemanticVersion($0) }
+            let upper = upperBound.flatMap { SemanticVersion($0) }
+            let satisfiesLowerBound = lower.map { version >= $0 } ?? true
+            let satisfiesUpperBound = upper.map { version < $0 } ?? true
+            return satisfiesLowerBound && satisfiesUpperBound
+        case .branch, .revision, .unknown:
+            return nil
+        }
     }
 }
 

@@ -113,6 +113,12 @@ public struct SemanticVersion: Comparable, CustomStringConvertible, Hashable {
     public var minor: Int
     public var patch: Int
 
+    public init(major: Int, minor: Int, patch: Int) {
+        self.major = major
+        self.minor = minor
+        self.patch = patch
+    }
+
     public init?(_ value: String) {
         let cleaned = value
             .trimmingCharacters(in: .whitespacesAndNewlines)

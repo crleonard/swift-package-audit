@@ -99,6 +99,9 @@ public struct TextReportRenderer: ReportRendering {
                     """
                 )
                 lines.append("     Newer versions: \(check.newerVersions.joined(separator: ", "))")
+                if let requirementNote = check.requirementNote {
+                    lines.append("     Requirement: \(requirementNote)")
+                }
             } else {
                 lines.append("  i \(check.packageIdentity)")
                 lines.append("     Current: \(check.currentVersion), no newer release tags found.")
@@ -168,8 +171,8 @@ public struct MarkdownReportRenderer: ReportRendering {
             "",
             "### Version Checks",
             "",
-            "| Package | Current | Latest | Behind | Newer Versions |",
-            "| --- | --- | --- | ---: | --- |",
+            "| Package | Current | Latest | Behind | Requirement | Newer Versions |",
+            "| --- | --- | --- | ---: | --- | --- |",
         ]
 
         for check in checks {
@@ -178,6 +181,7 @@ public struct MarkdownReportRenderer: ReportRendering {
                 check.currentVersion,
                 check.latestVersion ?? "-",
                 "\(check.versionsBehind)",
+                escape(check.requirementNote ?? "-"),
                 escape(check.newerVersions.joined(separator: ", ")),
             ]
             lines.append("| \(columns.joined(separator: " | ")) |")
