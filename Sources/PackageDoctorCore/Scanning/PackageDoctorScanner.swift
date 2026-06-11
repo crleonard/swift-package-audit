@@ -285,6 +285,7 @@ public struct PackageDoctorScanner {
 
             let versions = check.newerVersions.joined(separator: ", ")
             let requirement = check.requirementNote.map { " \($0)" } ?? ""
+            let distance = versionDistanceDescription(for: check)
             return Diagnostic(
                 rule: .outdatedVersion,
                 severity: .warning,
@@ -292,11 +293,33 @@ public struct PackageDoctorScanner {
                 message:
                     """
                     \(check.packageIdentity) is on \(check.currentVersion); latest is \(latestVersion) \
-                    (\(check.versionsBehind) release tags behind: \(versions)).\(requirement)
+                    (\(check.versionsBehind) release tags behind: \(versions)). \(distance).\(requirement)
                     """,
                 suggestion: "Review the package release notes and update when ready."
             )
         }
+    }
+
+    private func versionDistanceDescription(for check: PackageVersionCheck) -> String {
+        let parts = [
+            countDescription(check.majorVersionsBehind, singular: "major release"),
+            countDescription(check.minorVersionsBehind, singular: "minor release"),
+            countDescription(check.patchVersionsBehind, singular: "patch release"),
+        ].compactMap(\.self)
+
+        guard !parts.isEmpty else {
+            return "No stable release distance could be classified"
+        }
+
+        return parts.joined(separator: ", ") + " behind"
+    }
+
+    private func countDescription(_ count: Int, singular: String) -> String? {
+        guard count > 0 else {
+            return nil
+        }
+
+        return "\(count) \(singular)\(count == 1 ? "" : "s")"
     }
 
     private func annotateVersionChecks(

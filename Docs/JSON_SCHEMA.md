@@ -90,7 +90,14 @@ Diagnostics matched by the baseline are moved from `diagnostics` to `suppressedD
   "currentVersion": "1.0.0",
   "latestVersion": "1.2.1",
   "versionsBehind": 3,
-  "newerVersions": ["1.1.0", "1.2.0", "1.2.1"]
+  "newerVersions": ["1.1.0", "1.2.0", "1.2.1"],
+  "majorVersionsBehind": 0,
+  "minorVersionsBehind": 2,
+  "patchVersionsBehind": 1,
+  "requirementKind": "upToNextMajorVersion",
+  "requirementValue": "1.0.0",
+  "latestSatisfiesRequirement": true,
+  "requirementNote": "The existing upToNextMajorVersion requirement allows the latest version."
 }
 ```
 

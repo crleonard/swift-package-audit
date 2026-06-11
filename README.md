@@ -170,10 +170,11 @@ packagedoctor scan --check
 This uses `git ls-remote --tags --refs` for packages that already have a version in `Package.resolved`. PackageDoctor compares stable semantic version tags against the pinned version and reports findings like:
 
 ```text
-Package is on 1.0.0; latest is 1.2.1 (3 release tags behind: 1.1.0, 1.2.0, 1.2.1).
+Package is on 1.0.0; latest is 2.0.0 (4 release tags behind: 1.1.0, 1.2.0, 1.2.1, 2.0.0).
+1 major release, 2 minor releases behind. The existing upToNextMajorVersion requirement does not allow the latest version.
 ```
 
-Prerelease tags are ignored in this first version-check implementation.
+Prerelease tags are ignored in this first version-check implementation. PackageDoctor also reports whether the existing Xcode package requirement appears to allow the latest version.
 
 ## GitHub Actions
 

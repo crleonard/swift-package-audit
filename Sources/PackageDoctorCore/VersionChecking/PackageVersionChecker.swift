@@ -27,13 +27,17 @@ public struct PackageVersionChecker: PackageVersionChecking {
                     .uniqued()
                     .sorted()
                 let newerVersions = versions.filter { $0 > current }
+                let distance = VersionDistance(current: current, newerVersions: newerVersions)
                 return PackageVersionCheck(
                     packageIdentity: package.identity,
                     location: package.location,
                     currentVersion: version,
                     latestVersion: newerVersions.last?.description,
                     versionsBehind: newerVersions.count,
-                    newerVersions: newerVersions.map(\.description)
+                    newerVersions: newerVersions.map(\.description),
+                    majorVersionsBehind: distance.major,
+                    minorVersionsBehind: distance.minor,
+                    patchVersionsBehind: distance.patch
                 )
             } catch {
                 return PackageVersionCheck(
@@ -44,6 +48,32 @@ public struct PackageVersionChecker: PackageVersionChecking {
                 )
             }
         }
+    }
+}
+
+private struct VersionDistance {
+    var major: Int
+    var minor: Int
+    var patch: Int
+
+    init(current: SemanticVersion, newerVersions: [SemanticVersion]) {
+        var majorReleases = Set<Int>()
+        var minorReleases = Set<String>()
+        var patchReleases = Set<String>()
+
+        for version in newerVersions {
+            if version.major > current.major {
+                majorReleases.insert(version.major)
+            } else if version.minor > current.minor {
+                minorReleases.insert("\(version.major).\(version.minor)")
+            } else if version.patch > current.patch {
+                patchReleases.insert(version.description)
+            }
+        }
+
+        major = majorReleases.count
+        minor = minorReleases.count
+        patch = patchReleases.count
     }
 }
 

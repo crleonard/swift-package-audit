@@ -9,6 +9,8 @@ PackageDoctor is in pre-1.0 development. Do not treat any v0.x milestone tag as 
 - Add diagnostic baseline read/write support.
 - Add `pr-comment` output for GitHub pull request workflows.
 - Add optional `--check` remote tag version checks.
+- Report whether latest versions satisfy existing Xcode package requirements.
+- Classify version-check distance by major, minor, and patch release counts.
 - Improve `.xcworkspace` parsing by reading `contents.xcworkspacedata` project references.
 - Expand tests for config, baselines, PR comments, schema fields, and workspace layouts.
 

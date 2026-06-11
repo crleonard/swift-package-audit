@@ -164,6 +164,9 @@ public struct PackageVersionCheck: Codable, Equatable, Sendable {
     public var requirementValue: String?
     public var latestSatisfiesRequirement: Bool?
     public var requirementNote: String?
+    public var majorVersionsBehind: Int
+    public var minorVersionsBehind: Int
+    public var patchVersionsBehind: Int
     public var error: String?
 
     public init(
@@ -177,6 +180,9 @@ public struct PackageVersionCheck: Codable, Equatable, Sendable {
         requirementValue: String? = nil,
         latestSatisfiesRequirement: Bool? = nil,
         requirementNote: String? = nil,
+        majorVersionsBehind: Int = 0,
+        minorVersionsBehind: Int = 0,
+        patchVersionsBehind: Int = 0,
         error: String? = nil
     ) {
         self.packageIdentity = packageIdentity
@@ -189,6 +195,9 @@ public struct PackageVersionCheck: Codable, Equatable, Sendable {
         self.requirementValue = requirementValue
         self.latestSatisfiesRequirement = latestSatisfiesRequirement
         self.requirementNote = requirementNote
+        self.majorVersionsBehind = majorVersionsBehind
+        self.minorVersionsBehind = minorVersionsBehind
+        self.patchVersionsBehind = patchVersionsBehind
         self.error = error
     }
 }

@@ -10,6 +10,7 @@ func checksResolvedPackageVersionsAgainstRemoteTags() {
             "1.1.0",
             "v1.2.0",
             "1.2.1",
+            "2.0.0",
             "2.0.0-beta.1",
         ])
     )
@@ -23,9 +24,12 @@ func checksResolvedPackageVersionsAgainstRemoteTags() {
     ])
 
     #expect(checks.count == 1)
-    #expect(checks.first?.latestVersion == "1.2.1")
-    #expect(checks.first?.versionsBehind == 3)
-    #expect(checks.first?.newerVersions == ["1.1.0", "1.2.0", "1.2.1"])
+    #expect(checks.first?.latestVersion == "2.0.0")
+    #expect(checks.first?.versionsBehind == 4)
+    #expect(checks.first?.newerVersions == ["1.1.0", "1.2.0", "1.2.1", "2.0.0"])
+    #expect(checks.first?.majorVersionsBehind == 1)
+    #expect(checks.first?.minorVersionsBehind == 2)
+    #expect(checks.first?.patchVersionsBehind == 0)
 }
 
 @Test

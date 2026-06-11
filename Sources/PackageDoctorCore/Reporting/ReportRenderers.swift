@@ -95,7 +95,8 @@ public struct TextReportRenderer: ReportRendering {
                 lines.append(
                     """
                          Current: \(check.currentVersion), latest: \(latestVersion), \
-                    \(check.versionsBehind) release tags behind.
+                    \(check.versionsBehind) release tags behind \
+                    (\(versionDistanceDescription(for: check))).
                     """
                 )
                 lines.append("     Newer versions: \(check.newerVersions.joined(separator: ", "))")
@@ -107,6 +108,24 @@ public struct TextReportRenderer: ReportRendering {
                 lines.append("     Current: \(check.currentVersion), no newer release tags found.")
             }
         }
+    }
+
+    private func versionDistanceDescription(for check: PackageVersionCheck) -> String {
+        let parts = [
+            countDescription(check.majorVersionsBehind, singular: "major"),
+            countDescription(check.minorVersionsBehind, singular: "minor"),
+            countDescription(check.patchVersionsBehind, singular: "patch"),
+        ].compactMap(\.self)
+
+        return parts.isEmpty ? "0 classified releases" : parts.joined(separator: ", ")
+    }
+
+    private func countDescription(_ count: Int, singular: String) -> String? {
+        guard count > 0 else {
+            return nil
+        }
+
+        return "\(count) \(singular)"
     }
 }
 
@@ -171,8 +190,8 @@ public struct MarkdownReportRenderer: ReportRendering {
             "",
             "### Version Checks",
             "",
-            "| Package | Current | Latest | Behind | Requirement | Newer Versions |",
-            "| --- | --- | --- | ---: | --- | --- |",
+            "| Package | Current | Latest | Behind | Distance | Requirement | Newer Versions |",
+            "| --- | --- | --- | ---: | --- | --- | --- |",
         ]
 
         for check in checks {
@@ -181,11 +200,30 @@ public struct MarkdownReportRenderer: ReportRendering {
                 check.currentVersion,
                 check.latestVersion ?? "-",
                 "\(check.versionsBehind)",
+                versionDistanceDescription(for: check),
                 escape(check.requirementNote ?? "-"),
                 escape(check.newerVersions.joined(separator: ", ")),
             ]
             lines.append("| \(columns.joined(separator: " | ")) |")
         }
+    }
+
+    private func versionDistanceDescription(for check: PackageVersionCheck) -> String {
+        let parts = [
+            countDescription(check.majorVersionsBehind, singular: "major"),
+            countDescription(check.minorVersionsBehind, singular: "minor"),
+            countDescription(check.patchVersionsBehind, singular: "patch"),
+        ].compactMap(\.self)
+
+        return parts.isEmpty ? "-" : parts.joined(separator: ", ")
+    }
+
+    private func countDescription(_ count: Int, singular: String) -> String? {
+        guard count > 0 else {
+            return nil
+        }
+
+        return "\(count) \(singular)"
     }
 }
 
