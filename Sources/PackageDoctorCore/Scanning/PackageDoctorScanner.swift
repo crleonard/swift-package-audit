@@ -128,6 +128,7 @@ public struct PackageDoctorScanner {
             switch url.lastPathComponent {
             case let name where name.hasSuffix(".xcodeproj"):
                 inventory.projectURLs.append(url)
+                inventory.resolvedURLs.append(contentsOf: discoverPackageResolvedFiles(in: url))
                 enumerator.skipDescendants()
             case let name where name.hasSuffix(".xcworkspace"):
                 inventory.workspaceURLs.append(url)
@@ -145,6 +146,30 @@ public struct PackageDoctorScanner {
         inventory.packageManifestURLs.sort { $0.path < $1.path }
         inventory.resolvedURLs.sort { $0.path < $1.path }
         return inventory
+    }
+
+    private func discoverPackageResolvedFiles(in bundleURL: URL) -> [URL] {
+        guard let enumerator = fileManager.enumerator(
+            at: bundleURL,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return []
+        }
+
+        var resolvedURLs: [URL] = []
+        for case let url as URL in enumerator {
+            if shouldSkip(url) {
+                enumerator.skipDescendants()
+                continue
+            }
+
+            if url.lastPathComponent == "Package.resolved" {
+                resolvedURLs.append(url)
+            }
+        }
+
+        return resolvedURLs.sorted { $0.path < $1.path }
     }
 
     private func discoverWorkspaceProjects(workspaceURLs: [URL]) -> [URL] {

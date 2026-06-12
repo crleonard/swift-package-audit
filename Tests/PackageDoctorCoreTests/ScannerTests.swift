@@ -106,6 +106,50 @@ func scansProjectsReferencedByWorkspaceXML() throws {
 }
 
 @Test
+func scansPackageResolvedInsideXcodeProjectBundle() throws {
+    let root = try makeTemporaryDirectory()
+    let project = root.appendingPathComponent("MyApp.xcodeproj")
+    try write(
+        pbxproj(
+            packageBlocks: packageReferenceBlock(
+                url: "https://github.com/apple/swift-argument-parser.git",
+                requirement: """
+                  kind = upToNextMajorVersion;
+                  minimumVersion = 1.0.0;
+                """
+            )
+        ),
+        to: project.appendingPathComponent("project.pbxproj")
+    )
+    let nestedResolved = project
+        .appendingPathComponent("project.xcworkspace")
+        .appendingPathComponent("xcshareddata")
+        .appendingPathComponent("swiftpm")
+        .appendingPathComponent("Package.resolved")
+    try write(
+        modernResolved(
+            resolvedPin(
+                identity: "swift-argument-parser",
+                location: "https://github.com/apple/swift-argument-parser.git"
+            )
+        ),
+        to: nestedResolved
+    )
+
+    let result = PackageDoctorScanner().scan(configuration: ScanConfiguration(path: root.path))
+
+    #expect(result.projects.map { URL(fileURLWithPath: $0.path).lastPathComponent } == ["MyApp.xcodeproj"])
+    #expect(result.resolvedFilePaths.count == 1)
+    #expect(
+        result.resolvedFilePaths[0]
+            .hasSuffix("MyApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved")
+    )
+    #expect(result.resolvedPackages.map(\.identity) == ["swift-argument-parser"])
+    #expect(!result.diagnostics.contains { $0.rule == .missingPackageResolved })
+    #expect(!result.diagnostics.contains { $0.rule == .packageReferencedButNotResolved })
+}
+
+@Test
 func reportsPurePackageSwiftAsInformationalWhenNoDependencyGraphIsResolved() throws {
     let root = try makeTemporaryDirectory()
     try write("// swift-tools-version: 6.0\n", to: root.appendingPathComponent("Package.swift"))
