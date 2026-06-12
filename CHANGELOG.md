@@ -1,11 +1,11 @@
 # Changelog
 
-PackageDoctor is in pre-1.0 development. Do not treat any v0.x milestone tag as a production-ready 1.0 release.
+Swift Package Audit is in pre-1.0 development. Do not treat any v0.x milestone tag as a production-ready 1.0 release.
 
 ## v1.0.0
 
 - Add schema-versioned JSON output with stable diagnostic IDs.
-- Add `PackageDoctor.yml` config support.
+- Add `SwiftPackageAudit.yml` config support.
 - Add diagnostic baseline read/write support.
 - Add `pr-comment` output for GitHub pull request workflows.
 - Add optional `--check` remote tag version checks.
@@ -16,7 +16,7 @@ PackageDoctor is in pre-1.0 development. Do not treat any v0.x milestone tag as 
 
 ## Unreleased
 
-- Continue validating PackageDoctor against additional real-world Xcode projects.
+- Continue validating Swift Package Audit against additional real-world Xcode projects.
 
 ## v0.7.0-docs
 
@@ -29,7 +29,7 @@ PackageDoctor is in pre-1.0 development. Do not treat any v0.x milestone tag as 
 
 ## v0.5.0-cli
 
-- Add `packagedoctor scan`.
+- Add `swift-package-audit scan`.
 - Support text, JSON, and Markdown output.
 - Support `--fail-on` and `--strict`.
 

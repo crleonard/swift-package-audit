@@ -66,7 +66,7 @@ func configSuppressesAllowedDiagnosticsDuringScan() throws {
           branchDependencies:
             - internaldesignsystem
         """,
-        to: root.appendingPathComponent("PackageDoctor.yml")
+        to: root.appendingPathComponent("SwiftPackageAudit.yml")
     )
 
     let result = PackageDoctorScanner().scan(configuration: ScanConfiguration(path: root.path))

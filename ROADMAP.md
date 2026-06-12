@@ -1,6 +1,6 @@
 # Roadmap
 
-PackageDoctor is ready for 1.0 release validation. The JSON/reporting contracts are schema-versioned, config and baseline support are implemented, and the scanner covers basic multi-project workspace layouts.
+Swift Package Audit is ready for 1.0 release validation. The JSON/reporting contracts are schema-versioned, config and baseline support are implemented, and the scanner covers basic multi-project workspace layouts.
 
 ## Release Validation
 

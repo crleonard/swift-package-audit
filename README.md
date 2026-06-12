@@ -1,12 +1,12 @@
-# PackageDoctor
+# Swift Package Audit
 
 A SwiftPM health checker for real Xcode projects.
 
-PackageDoctor diagnoses dependency health issues in Xcode SwiftPM setups by comparing what your project asks for against what Package.resolved actually pins.
+Swift Package Audit diagnoses dependency health issues in Xcode SwiftPM setups by comparing what your project asks for against what Package.resolved actually pins.
 
-Status: release candidate. PackageDoctor is read-only, does not update packages, and does not edit `project.pbxproj` files.
+Status: release candidate. Swift Package Audit is read-only, does not update packages, and does not edit `project.pbxproj` files.
 
-## Why PackageDoctor Exists
+## Why Swift Package Audit Exists
 
 Many iOS and macOS teams do not manage dependencies through `Package.swift` alone. Real Xcode projects often include:
 
@@ -17,7 +17,7 @@ Many iOS and macOS teams do not manage dependencies through `Package.swift` alon
 - UIKit, SwiftUI, and mixed UIKit/SwiftUI apps
 - multiple projects in one workspace
 
-PackageDoctor is dependency tooling, not UI tooling. It works from project metadata and resolved pins, regardless of whether the app uses UIKit, SwiftUI, or both.
+Swift Package Audit is dependency tooling, not UI tooling. It works from project metadata and resolved pins, regardless of whether the app uses UIKit, SwiftUI, or both.
 
 ## What It Checks Today
 
@@ -39,28 +39,28 @@ The current MVP scans for:
 - GitHub PR comment output
 - optional remote tag checks for newer package versions
 
-PackageDoctor intentionally avoids network calls during normal scans. Remote version checks only run when you pass `--check`.
+Swift Package Audit intentionally avoids network calls during normal scans. Remote version checks only run when you pass `--check`.
 
 ## Installation
 
 Build from source:
 
 ```sh
-git clone https://github.com/crleonard/PackageDoctor.git
-cd PackageDoctor
+git clone https://github.com/crleonard/swift-package-audit.git
+cd swift-package-audit
 swift build -c release
 ```
 
 Run the built executable:
 
 ```sh
-.build/release/packagedoctor scan --path /path/to/project
+.build/release/swift-package-audit scan --path /path/to/project
 ```
 
 Install with Mint:
 
 ```sh
-mint install crleonard/PackageDoctor
+mint install crleonard/swift-package-audit
 ```
 
 Homebrew support is planned for a future release.
@@ -68,19 +68,19 @@ Homebrew support is planned for a future release.
 ## Usage
 
 ```sh
-packagedoctor scan
-packagedoctor scan --path .
-packagedoctor scan --format text
-packagedoctor scan --format json
-packagedoctor scan --format markdown
-packagedoctor scan --format pr-comment
-packagedoctor scan --fail-on error
-packagedoctor scan --fail-on warning
-packagedoctor scan --strict
-packagedoctor scan --check
-packagedoctor scan --config PackageDoctor.yml
-packagedoctor scan --baseline PackageDoctorBaseline.json
-packagedoctor scan --write-baseline PackageDoctorBaseline.json
+swift-package-audit scan
+swift-package-audit scan --path .
+swift-package-audit scan --format text
+swift-package-audit scan --format json
+swift-package-audit scan --format markdown
+swift-package-audit scan --format pr-comment
+swift-package-audit scan --fail-on error
+swift-package-audit scan --fail-on warning
+swift-package-audit scan --strict
+swift-package-audit scan --check
+swift-package-audit scan --config SwiftPackageAudit.yml
+swift-package-audit scan --baseline SwiftPackageAuditBaseline.json
+swift-package-audit scan --write-baseline SwiftPackageAuditBaseline.json
 ```
 
 `--strict` is equivalent to `--fail-on warning`.
@@ -88,7 +88,7 @@ packagedoctor scan --write-baseline PackageDoctorBaseline.json
 ## Example Output
 
 ```text
-PackageDoctor
+Swift Package Audit
 
 Path:
   /Users/chris/project
@@ -120,10 +120,10 @@ Markdown output is designed for general reports. `pr-comment` output is designed
 
 ## Configuration
 
-PackageDoctor automatically reads `PackageDoctor.yml` from the scan root when present. A config path can also be supplied explicitly:
+Swift Package Audit automatically reads `SwiftPackageAudit.yml` from the scan root when present. A config path can also be supplied explicitly:
 
 ```sh
-packagedoctor scan --config PackageDoctor.yml
+swift-package-audit scan --config SwiftPackageAudit.yml
 ```
 
 Supported config:
@@ -150,55 +150,55 @@ rules:
 
 ## Baselines
 
-Use baselines when adopting PackageDoctor in a project with existing known issues:
+Use baselines when adopting Swift Package Audit in a project with existing known issues:
 
 ```sh
-packagedoctor scan --write-baseline PackageDoctorBaseline.json
-packagedoctor scan --baseline PackageDoctorBaseline.json --fail-on warning
+swift-package-audit scan --write-baseline SwiftPackageAuditBaseline.json
+swift-package-audit scan --baseline SwiftPackageAuditBaseline.json --fail-on warning
 ```
 
 Baseline-matched findings are reported as suppressed diagnostics in JSON and PR comment output.
 
 ## Optional Version Checks
 
-PackageDoctor does not contact package hosts during normal scans. To opt in to remote tag checks, run:
+Swift Package Audit does not contact package hosts during normal scans. To opt in to remote tag checks, run:
 
 ```sh
-packagedoctor scan --check
+swift-package-audit scan --check
 ```
 
-This uses `git ls-remote --tags --refs` for packages that already have a version in `Package.resolved`. PackageDoctor compares stable semantic version tags against the pinned version and reports findings like:
+This uses `git ls-remote --tags --refs` for packages that already have a version in `Package.resolved`. Swift Package Audit compares stable semantic version tags against the pinned version and reports findings like:
 
 ```text
 Package is on 1.0.0; latest is 2.0.0 (4 release tags behind: 1.1.0, 1.2.0, 1.2.1, 2.0.0).
 1 major release, 2 minor releases behind. The existing upToNextMajorVersion requirement does not allow the latest version.
 ```
 
-Prerelease tags are ignored in this first version-check implementation. PackageDoctor also reports whether the existing Xcode package requirement appears to allow the latest version.
+Prerelease tags are ignored in this first version-check implementation. Swift Package Audit also reports whether the existing Xcode package requirement appears to allow the latest version.
 
 ## GitHub Actions
 
 Example dependency health check:
 
 ```yaml
-name: PackageDoctor
+name: Swift Package Audit
 
 on:
   pull_request:
 
 jobs:
-  packagedoctor:
+  swift-package-audit:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - run: swift run packagedoctor scan --format pr-comment --fail-on error
+      - run: swift run swift-package-audit scan --format pr-comment --fail-on error
 ```
 
 This repository also runs `swift build` and `swift test` in CI.
 
 ## Roadmap
 
-PackageDoctor is ready for 1.0 release validation. Planned post-1.0 work includes:
+Swift Package Audit is ready for 1.0 release validation. Planned post-1.0 work includes:
 
 - stale dependency checks
 - latest release checks
@@ -210,4 +210,4 @@ PackageDoctor is ready for 1.0 release validation. Planned post-1.0 work include
 
 ## License
 
-PackageDoctor is released under the MIT License.
+Swift Package Audit is released under the MIT License.

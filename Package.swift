@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "PackageDoctor",
+    name: "SwiftPackageAudit",
     platforms: [
         .macOS(.v14)
     ],
@@ -12,7 +12,7 @@ let package = Package(
             targets: ["PackageDoctorCore"]
         ),
         .executable(
-            name: "packagedoctor",
+            name: "swift-package-audit",
             targets: ["PackageDoctorCLI"]
         ),
     ],

@@ -1,13 +1,13 @@
 # JSON Output Schema
 
-PackageDoctor JSON output is versioned with `schemaVersion`.
+Swift Package Audit JSON output is versioned with `schemaVersion`.
 
 The current schema version is `1`. Patch releases may add optional fields, but existing fields in schema version 1 should remain stable throughout the 1.x line.
 
 Generate JSON with:
 
 ```sh
-packagedoctor scan --format json
+swift-package-audit scan --format json
 ```
 
 ## Top-Level Object
@@ -73,8 +73,8 @@ Known severities:
 Baselines use the diagnostic `id` values from the schema:
 
 ```sh
-packagedoctor scan --write-baseline PackageDoctorBaseline.json
-packagedoctor scan --baseline PackageDoctorBaseline.json
+swift-package-audit scan --write-baseline SwiftPackageAuditBaseline.json
+swift-package-audit scan --baseline SwiftPackageAuditBaseline.json
 ```
 
 Diagnostics matched by the baseline are moved from `diagnostics` to `suppressedDiagnostics`.

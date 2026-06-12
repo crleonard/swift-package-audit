@@ -1,19 +1,19 @@
-name: PackageDoctor
+name: Swift Package Audit
 
 on:
   pull_request:
 
 jobs:
-  packagedoctor:
+  swift-package-audit:
     runs-on: macos-15
     permissions:
       contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - name: Run PackageDoctor
-        run: swift run packagedoctor scan --format pr-comment --fail-on error > packagedoctor.md
+      - name: Run Swift Package Audit
+        run: swift run swift-package-audit scan --format pr-comment --fail-on error > swift-package-audit.md
       - name: Comment on PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          path: packagedoctor.md
+          path: swift-package-audit.md

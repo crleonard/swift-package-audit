@@ -102,11 +102,16 @@ public struct PackageDoctorScanner {
         }
 
         let rootURL = URL(fileURLWithPath: configuration.path).standardizedFileURL
-        let defaultConfigURL = rootURL.appendingPathComponent("PackageDoctor.yml")
-        guard fileManager.fileExists(atPath: defaultConfigURL.path) else {
+        let defaultConfigURL = rootURL.appendingPathComponent("SwiftPackageAudit.yml")
+        if fileManager.fileExists(atPath: defaultConfigURL.path) {
+            return defaultConfigURL.path
+        }
+
+        let legacyConfigURL = rootURL.appendingPathComponent("PackageDoctor.yml")
+        guard fileManager.fileExists(atPath: legacyConfigURL.path) else {
             return nil
         }
-        return defaultConfigURL.path
+        return legacyConfigURL.path
     }
 
     private func discover(from rootURL: URL) -> Inventory {

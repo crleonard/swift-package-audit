@@ -25,7 +25,7 @@ func rendersStableTextJSONAndMarkdownReports() throws {
     let json = try JSONReportRenderer().render(result)
     let markdown = MarkdownReportRenderer().render(result)
 
-    #expect(text.contains("PackageDoctor"))
+    #expect(text.contains("Swift Package Audit"))
     #expect(text.contains("Warnings:"))
     #expect(json.contains("\"diagnostics\""))
     #expect(markdown.contains("| Severity | Rule | Package | Message | Suggestion |"))

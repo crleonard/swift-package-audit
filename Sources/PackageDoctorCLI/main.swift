@@ -5,7 +5,7 @@ import PackageDoctorCore
 @main
 struct PackageDoctorCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "packagedoctor",
+        commandName: "swift-package-audit",
         abstract: PackageDoctor.tagline,
         subcommands: [Scan.self],
         defaultSubcommand: Scan.self
@@ -27,10 +27,10 @@ struct Scan: ParsableCommand {
     @Option(name: .long, help: "Exit non-zero when diagnostics are at least this severity.")
     var failOn: DiagnosticSeverity?
 
-    @Option(name: .long, help: "Path to PackageDoctor.yml.")
+    @Option(name: .long, help: "Path to SwiftPackageAudit.yml.")
     var config: String?
 
-    @Option(name: .long, help: "Path to a PackageDoctor baseline JSON file.")
+    @Option(name: .long, help: "Path to a Swift Package Audit baseline JSON file.")
     var baseline: String?
 
     @Option(name: .long, help: "Write the current active diagnostics to a baseline JSON file.")
