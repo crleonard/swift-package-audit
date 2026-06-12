@@ -1,10 +1,10 @@
 import Testing
 
-@testable import PackageDoctorCore
+@testable import SwiftPackageAuditCore
 
 @Test
-func parsesPackageDoctorConfig() throws {
-    let config = try PackageDoctorConfigLoader().parse(
+func parsesSwiftPackageAuditConfig() throws {
+    let config = try SwiftPackageAuditConfigLoader().parse(
         """
         failOn:
           - missingPackageResolved
@@ -69,7 +69,7 @@ func configSuppressesAllowedDiagnosticsDuringScan() throws {
         to: root.appendingPathComponent("SwiftPackageAudit.yml")
     )
 
-    let result = PackageDoctorScanner().scan(configuration: ScanConfiguration(path: root.path))
+    let result = SwiftPackageAuditScanner().scan(configuration: ScanConfiguration(path: root.path))
 
     #expect(!result.diagnostics.contains { $0.rule == .branchDependency })
 }

@@ -1,11 +1,11 @@
 import Foundation
 
-public struct PackageDoctorScanner {
+public struct SwiftPackageAuditScanner {
     private let fileManager: FileManager
     private let projectParser: XcodeProjectParser
     private let resolvedParser: PackageResolvedParser
     private let diagnoser: DependencyHealthDiagnoser
-    private let configLoader: PackageDoctorConfigLoader
+    private let configLoader: SwiftPackageAuditConfigLoader
     private let baselineStore: DiagnosticBaselineStore
     private let versionChecker: PackageVersionChecking
 
@@ -14,7 +14,7 @@ public struct PackageDoctorScanner {
         projectParser: XcodeProjectParser = XcodeProjectParser(),
         resolvedParser: PackageResolvedParser = PackageResolvedParser(),
         diagnoser: DependencyHealthDiagnoser = DependencyHealthDiagnoser(),
-        configLoader: PackageDoctorConfigLoader = PackageDoctorConfigLoader(),
+        configLoader: SwiftPackageAuditConfigLoader = SwiftPackageAuditConfigLoader(),
         baselineStore: DiagnosticBaselineStore = DiagnosticBaselineStore(),
         versionChecker: PackageVersionChecking = PackageVersionChecker()
     ) {
@@ -107,11 +107,7 @@ public struct PackageDoctorScanner {
             return defaultConfigURL.path
         }
 
-        let legacyConfigURL = rootURL.appendingPathComponent("PackageDoctor.yml")
-        guard fileManager.fileExists(atPath: legacyConfigURL.path) else {
-            return nil
-        }
-        return legacyConfigURL.path
+        return nil
     }
 
     private func discover(from rootURL: URL) -> Inventory {
@@ -227,17 +223,17 @@ public struct PackageDoctorScanner {
     private func loadConfig(
         configuration: ScanConfiguration,
         infoMessages: inout [String]
-    ) -> PackageDoctorConfig {
+    ) -> SwiftPackageAuditConfig {
         let configPath = resolvedConfigPath(configuration: configuration)
         guard let configPath else {
-            return PackageDoctorConfig()
+            return SwiftPackageAuditConfig()
         }
 
         do {
             return try configLoader.load(path: configPath)
         } catch {
             infoMessages.append(String(describing: error))
-            return PackageDoctorConfig()
+            return SwiftPackageAuditConfig()
         }
     }
 
@@ -258,7 +254,7 @@ public struct PackageDoctorScanner {
     }
 
     private func applyConfig(
-        _ config: PackageDoctorConfig,
+        _ config: SwiftPackageAuditConfig,
         to diagnostics: [Diagnostic]
     ) -> [Diagnostic] {
         diagnostics.filter { diagnostic in

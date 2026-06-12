@@ -8,12 +8,12 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "PackageDoctorCore",
-            targets: ["PackageDoctorCore"]
+            name: "SwiftPackageAuditCore",
+            targets: ["SwiftPackageAuditCore"]
         ),
         .executable(
             name: "swift-package-audit",
-            targets: ["PackageDoctorCLI"]
+            targets: ["SwiftPackageAuditCLI"]
         ),
     ],
     dependencies: [
@@ -21,18 +21,18 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "PackageDoctorCore"
+            name: "SwiftPackageAuditCore"
         ),
         .executableTarget(
-            name: "PackageDoctorCLI",
+            name: "SwiftPackageAuditCLI",
             dependencies: [
-                "PackageDoctorCore",
+                "SwiftPackageAuditCore",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
         .testTarget(
-            name: "PackageDoctorCoreTests",
-            dependencies: ["PackageDoctorCore"]
+            name: "SwiftPackageAuditCoreTests",
+            dependencies: ["SwiftPackageAuditCore"]
         ),
     ]
 )

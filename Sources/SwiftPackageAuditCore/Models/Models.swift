@@ -244,7 +244,7 @@ public struct Diagnostic: Codable, Equatable, Sendable {
             packageIdentity?.lowercased() ?? "",
             URL(fileURLWithPath: projectPath ?? "").lastPathComponent.lowercased(),
             message.normalizedDiagnosticText,
-        ].joined(separator: "|").stablePackageDoctorHash
+        ].joined(separator: "|").stableSwiftPackageAuditHash
     }
 }
 

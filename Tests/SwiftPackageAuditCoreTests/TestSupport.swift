@@ -1,10 +1,10 @@
 import Foundation
 
-@testable import PackageDoctorCore
+@testable import SwiftPackageAuditCore
 
 func makeTemporaryDirectory() throws -> URL {
     let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent("PackageDoctorTests")
+        .appendingPathComponent("SwiftPackageAuditTests")
         .appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
     return url

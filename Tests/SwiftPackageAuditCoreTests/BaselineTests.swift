@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import PackageDoctorCore
+@testable import SwiftPackageAuditCore
 
 @Test
 func baselineSuppressesMatchingDiagnostics() throws {
@@ -30,14 +30,14 @@ func baselineSuppressesMatchingDiagnostics() throws {
         to: root.appendingPathComponent("Package.resolved")
     )
 
-    let firstResult = PackageDoctorScanner().scan(configuration: ScanConfiguration(path: root.path))
-    let baselinePath = root.appendingPathComponent("PackageDoctorBaseline.json").path
+    let firstResult = SwiftPackageAuditScanner().scan(configuration: ScanConfiguration(path: root.path))
+    let baselinePath = root.appendingPathComponent("SwiftPackageAuditBaseline.json").path
     try DiagnosticBaselineStore().write(
         DiagnosticBaseline(diagnostics: firstResult.diagnostics.map(BaselineEntry.init(diagnostic:))),
         path: baselinePath
     )
 
-    let secondResult = PackageDoctorScanner().scan(
+    let secondResult = SwiftPackageAuditScanner().scan(
         configuration: ScanConfiguration(path: root.path, baselinePath: baselinePath)
     )
 

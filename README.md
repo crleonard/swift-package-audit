@@ -111,7 +111,7 @@ Path:
   /Users/chrisleonard/Desktop/TESTPROJ
 
 Projects:
-  PackageDoctorPlayground.xcodeproj
+  SwiftPackageAuditPlayground.xcodeproj
 
 Swift packages:
   7 referenced
@@ -218,7 +218,7 @@ swift-package-audit scan --format json
   "schemaVersion": 1,
   "rootPath": "/Users/chrisleonard/Desktop/TESTPROJ",
   "workspacePaths": [
-    "/Users/chrisleonard/Desktop/TESTPROJ/PackageDoctorPlayground.xcworkspace"
+    "/Users/chrisleonard/Desktop/TESTPROJ/SwiftPackageAuditPlayground.xcworkspace"
   ],
   "resolvedFilePaths": [
     "/Users/chrisleonard/Desktop/TESTPROJ/Package.resolved"

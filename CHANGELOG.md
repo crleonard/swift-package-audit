@@ -4,6 +4,7 @@ Swift Package Audit is in pre-1.0 development. Do not treat any v0.x milestone t
 
 ## v1.0.0
 
+- Rename remaining internal targets, modules, and public symbols to SwiftPackageAudit.
 - Add schema-versioned JSON output with stable diagnostic IDs.
 - Add `SwiftPackageAudit.yml` config support.
 - Add diagnostic baseline read/write support.

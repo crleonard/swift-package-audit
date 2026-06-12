@@ -1,6 +1,6 @@
 import Testing
 
-@testable import PackageDoctorCore
+@testable import SwiftPackageAuditCore
 
 @Test
 func reportsMissingPackageResolvedWhenProjectHasReferences() {

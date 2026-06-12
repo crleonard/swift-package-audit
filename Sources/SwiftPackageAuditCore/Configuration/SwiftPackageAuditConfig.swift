@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PackageDoctorConfig: Codable, Equatable, Sendable {
+public struct SwiftPackageAuditConfig: Codable, Equatable, Sendable {
     public var failOn: [DiagnosticRule]
     public var allowedBranchDependencies: [String]
     public var ignoredPackages: [String]
@@ -25,7 +25,7 @@ public struct PackageDoctorConfig: Codable, Equatable, Sendable {
     }
 }
 
-public enum PackageDoctorConfigError: Error, CustomStringConvertible, Sendable {
+public enum SwiftPackageAuditConfigError: Error, CustomStringConvertible, Sendable {
     case unreadable(String, String)
     case invalidRule(String)
 
@@ -39,21 +39,21 @@ public enum PackageDoctorConfigError: Error, CustomStringConvertible, Sendable {
     }
 }
 
-public struct PackageDoctorConfigLoader: Sendable {
+public struct SwiftPackageAuditConfigLoader: Sendable {
     public init() {}
 
-    public func load(path: String) throws -> PackageDoctorConfig {
+    public func load(path: String) throws -> SwiftPackageAuditConfig {
         let contents: String
         do {
             contents = try String(contentsOfFile: path, encoding: .utf8)
         } catch {
-            throw PackageDoctorConfigError.unreadable(path, error.localizedDescription)
+            throw SwiftPackageAuditConfigError.unreadable(path, error.localizedDescription)
         }
         return try parse(contents)
     }
 
-    public func parse(_ contents: String) throws -> PackageDoctorConfig {
-        var config = PackageDoctorConfig()
+    public func parse(_ contents: String) throws -> SwiftPackageAuditConfig {
+        var config = SwiftPackageAuditConfig()
         var section: [String] = []
 
         for rawLine in contents.components(separatedBy: .newlines) {
@@ -95,7 +95,7 @@ public struct PackageDoctorConfigLoader: Sendable {
     private func applyListValue(
         _ value: String,
         section: [String],
-        config: inout PackageDoctorConfig
+        config: inout SwiftPackageAuditConfig
     ) throws {
         switch section {
         case ["failOn"]:
@@ -115,7 +115,7 @@ public struct PackageDoctorConfigLoader: Sendable {
         _ value: String,
         key: String,
         section: [String],
-        config: inout PackageDoctorConfig
+        config: inout SwiftPackageAuditConfig
     ) {
         guard section == ["rules"] else {
             return
@@ -133,7 +133,7 @@ public struct PackageDoctorConfigLoader: Sendable {
 
     private func rule(from value: String) throws -> DiagnosticRule {
         guard let rule = DiagnosticRule(rawValue: value) else {
-            throw PackageDoctorConfigError.invalidRule(value)
+            throw SwiftPackageAuditConfigError.invalidRule(value)
         }
         return rule
     }

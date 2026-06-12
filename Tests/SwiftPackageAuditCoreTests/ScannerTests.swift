@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import PackageDoctorCore
+@testable import SwiftPackageAuditCore
 
 @Test
 func scansWorkspaceWithMultipleProjects() throws {
@@ -54,7 +54,7 @@ func scansWorkspaceWithMultipleProjects() throws {
         to: root.appendingPathComponent("Package.resolved")
     )
 
-    let result = PackageDoctorScanner().scan(configuration: ScanConfiguration(path: root.path))
+    let result = SwiftPackageAuditScanner().scan(configuration: ScanConfiguration(path: root.path))
 
     #expect(result.workspacePaths.count == 1)
     #expect(result.projects.count == 2)
@@ -99,7 +99,7 @@ func scansProjectsReferencedByWorkspaceXML() throws {
         to: root.appendingPathComponent("Package.resolved")
     )
 
-    let result = PackageDoctorScanner().scan(configuration: ScanConfiguration(path: root.path))
+    let result = SwiftPackageAuditScanner().scan(configuration: ScanConfiguration(path: root.path))
 
     #expect(result.projects.map { URL(fileURLWithPath: $0.path).lastPathComponent } == ["MyApp.xcodeproj"])
     #expect(result.projects.flatMap(\.packageReferences).count == 1)
@@ -136,7 +136,7 @@ func scansPackageResolvedInsideXcodeProjectBundle() throws {
         to: nestedResolved
     )
 
-    let result = PackageDoctorScanner().scan(configuration: ScanConfiguration(path: root.path))
+    let result = SwiftPackageAuditScanner().scan(configuration: ScanConfiguration(path: root.path))
 
     #expect(result.projects.map { URL(fileURLWithPath: $0.path).lastPathComponent } == ["MyApp.xcodeproj"])
     #expect(result.resolvedFilePaths.count == 1)
@@ -154,7 +154,7 @@ func reportsPurePackageSwiftAsInformationalWhenNoDependencyGraphIsResolved() thr
     let root = try makeTemporaryDirectory()
     try write("// swift-tools-version: 6.0\n", to: root.appendingPathComponent("Package.swift"))
 
-    let result = PackageDoctorScanner().scan(configuration: ScanConfiguration(path: root.path))
+    let result = SwiftPackageAuditScanner().scan(configuration: ScanConfiguration(path: root.path))
 
     #expect(result.packageManifestPaths.count == 1)
     #expect(result.diagnostics.contains { $0.rule == .packageManifestNotResolved })

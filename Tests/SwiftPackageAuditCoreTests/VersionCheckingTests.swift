@@ -1,6 +1,6 @@
 import Testing
 
-@testable import PackageDoctorCore
+@testable import SwiftPackageAuditCore
 
 @Test
 func checksResolvedPackageVersionsAgainstRemoteTags() {
@@ -34,7 +34,7 @@ func checksResolvedPackageVersionsAgainstRemoteTags() {
 
 @Test
 func scannerAddsOutdatedVersionDiagnosticWhenVersionCheckIsEnabled() {
-    let scanner = PackageDoctorScanner(
+    let scanner = SwiftPackageAuditScanner(
         versionChecker: StubVersionChecker(checks: [
             PackageVersionCheck(
                 packageIdentity: "example",
@@ -82,7 +82,7 @@ func scannerAnnotatesWhetherLatestVersionSatisfiesRequirement() throws {
         to: root.appendingPathComponent("Package.resolved")
     )
 
-    let scanner = PackageDoctorScanner(
+    let scanner = SwiftPackageAuditScanner(
         versionChecker: StubVersionChecker(checks: [
             PackageVersionCheck(
                 packageIdentity: "example",

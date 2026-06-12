@@ -1,12 +1,12 @@
 import ArgumentParser
 import Foundation
-import PackageDoctorCore
+import SwiftPackageAuditCore
 
 @main
-struct PackageDoctorCommand: ParsableCommand {
+struct SwiftPackageAuditCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "swift-package-audit",
-        abstract: PackageDoctor.tagline,
+        abstract: SwiftPackageAudit.tagline,
         subcommands: [Scan.self],
         defaultSubcommand: Scan.self
     )
@@ -43,7 +43,7 @@ struct Scan: ParsableCommand {
     var strict = false
 
     func run() throws {
-        let scanner = PackageDoctorScanner()
+        let scanner = SwiftPackageAuditScanner()
         let configuration = ScanConfiguration(
             path: path,
             strict: strict,
@@ -76,11 +76,11 @@ struct Scan: ParsableCommand {
     }
 
     private func configuredFailRules(
-        scanner: PackageDoctorScanner,
+        scanner: SwiftPackageAuditScanner,
         configuration: ScanConfiguration
     ) -> [DiagnosticRule] {
         guard let configPath = scanner.resolvedConfigPath(configuration: configuration),
-            let config = try? PackageDoctorConfigLoader().load(path: configPath)
+            let config = try? SwiftPackageAuditConfigLoader().load(path: configPath)
         else {
             return []
         }

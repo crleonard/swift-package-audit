@@ -9,7 +9,7 @@ public struct TextReportRenderer: ReportRendering {
 
     public func render(_ result: WorkspaceScanResult) -> String {
         var lines: [String] = [
-            PackageDoctor.name,
+            SwiftPackageAudit.name,
             "",
             "Path:",
             "  \(result.rootPath)",
@@ -145,7 +145,7 @@ public struct MarkdownReportRenderer: ReportRendering {
 
     public func render(_ result: WorkspaceScanResult) -> String {
         var lines: [String] = [
-            "## \(PackageDoctor.name)",
+            "## \(SwiftPackageAudit.name)",
             "",
             "**Path:** `\(result.rootPath)`",
             "",
@@ -235,7 +235,7 @@ public struct PRCommentReportRenderer: ReportRendering {
         let warningCount = result.diagnostics.filter { $0.severity == .warning }.count
         let infoCount = result.diagnostics.filter { $0.severity == .info }.count
         var lines: [String] = [
-            "## \(PackageDoctor.name)",
+            "## \(SwiftPackageAudit.name)",
             "",
             "| Errors | Warnings | Info | Suppressed |",
             "| ---: | ---: | ---: | ---: |",

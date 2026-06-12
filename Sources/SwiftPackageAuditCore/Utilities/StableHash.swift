@@ -9,7 +9,7 @@ extension String {
             .lowercased()
     }
 
-    var stablePackageDoctorHash: String {
+    var stableSwiftPackageAuditHash: String {
         let bytes = Array(utf8)
         var hash: UInt64 = 0xcbf29ce484222325
         for byte in bytes {
