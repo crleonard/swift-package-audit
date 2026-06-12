@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import SwiftPackageAuditCore
@@ -30,6 +31,113 @@ func checksResolvedPackageVersionsAgainstRemoteTags() {
     #expect(checks.first?.majorVersionsBehind == 1)
     #expect(checks.first?.minorVersionsBehind == 2)
     #expect(checks.first?.patchVersionsBehind == 0)
+}
+
+@Test
+func skipsPackagesWithoutValidCurrentVersions() {
+    let checker = PackageVersionChecker(
+        tagProvider: StubTagProvider(tags: ["1.0.0", "1.1.0"])
+    )
+
+    let checks = checker.check(resolvedPackages: [
+        ResolvedPackage(identity: "branchy", location: "https://github.com/example/branchy.git"),
+        ResolvedPackage(
+            identity: "invalid",
+            location: "https://github.com/example/invalid.git",
+            version: "main"
+        ),
+        ResolvedPackage(
+            identity: "valid",
+            location: "https://github.com/example/valid.git",
+            version: "1.0.0"
+        ),
+    ])
+
+    #expect(checks.map(\.packageIdentity) == ["valid"])
+}
+
+@Test
+func versionCheckerReportsTagProviderErrorsPerPackage() {
+    let checker = PackageVersionChecker(tagProvider: ThrowingTagProvider())
+
+    let checks = checker.check(resolvedPackages: [
+        ResolvedPackage(
+            identity: "example",
+            location: "https://github.com/example/example.git",
+            version: "1.0.0"
+        )
+    ])
+
+    #expect(checks.count == 1)
+    #expect(checks.first?.error == "remote tags unavailable")
+    #expect(checks.first?.latestVersion == nil)
+    #expect(checks.first?.versionsBehind == 0)
+}
+
+@Test
+func versionCheckerDeduplicatesNormalizesAndIgnoresPrereleaseTags() {
+    let checker = PackageVersionChecker(
+        tagProvider: StubTagProvider(tags: [
+            "v1.0.1",
+            "1.0.1",
+            "1.0.2-beta.1",
+            "release-1.0.3",
+            "1.1",
+        ])
+    )
+
+    let checks = checker.check(resolvedPackages: [
+        ResolvedPackage(
+            identity: "example",
+            location: "https://github.com/example/example.git",
+            version: "1.0"
+        )
+    ])
+
+    #expect(checks.first?.currentVersion == "1.0")
+    #expect(checks.first?.newerVersions == ["1.0.1", "1.1.0"])
+    #expect(checks.first?.latestVersion == "1.1.0")
+    #expect(checks.first?.versionsBehind == 2)
+    #expect(checks.first?.minorVersionsBehind == 1)
+    #expect(checks.first?.patchVersionsBehind == 1)
+}
+
+@Test
+func semanticVersionParsesAndOrdersStableVersions() {
+    #expect(SemanticVersion("v1.2") == SemanticVersion(major: 1, minor: 2, patch: 0))
+    #expect(SemanticVersion("1.2.3")! < SemanticVersion("1.3.0")!)
+    #expect(SemanticVersion("1.2.3-beta.1") == nil)
+    #expect(SemanticVersion("release-1.2.3") == nil)
+}
+
+@Test
+func gitRemoteTagProviderReadsTagsFromLocalRepository() throws {
+    let root = try makeTemporaryDirectory()
+    try runGit(["init"], in: root)
+    try runGit(["config", "user.email", "tests@example.com"], in: root)
+    try runGit(["config", "user.name", "Swift Package Audit Tests"], in: root)
+    try write("fixture", to: root.appendingPathComponent("README.md"))
+    try runGit(["add", "README.md"], in: root)
+    try runGit(["commit", "-m", "Initial commit"], in: root)
+    try runGit(["tag", "1.0.0"], in: root)
+    try runGit(["tag", "v1.1.0"], in: root)
+
+    let tags = try GitRemoteTagProvider(timeoutSeconds: 5).tags(for: root.absoluteString)
+
+    #expect(tags.contains("1.0.0"))
+    #expect(tags.contains("v1.1.0"))
+}
+
+@Test
+func gitRemoteTagProviderReportsGitFailures() throws {
+    let missingRepository = try makeTemporaryDirectory().appendingPathComponent("missing.git")
+
+    do {
+        _ = try GitRemoteTagProvider(timeoutSeconds: 5).tags(for: missingRepository.absoluteString)
+        #expect(Bool(false))
+    } catch VersionCheckError.gitFailed(let message) {
+        #expect(!message.isEmpty)
+    }
 }
 
 @Test
@@ -112,6 +220,32 @@ private struct StubTagProvider: GitTagProviding {
     func tags(for repositoryURL: String) throws -> [String] {
         tags
     }
+}
+
+private enum StubTagError: Error, LocalizedError {
+    case unavailable
+
+    var errorDescription: String? {
+        "remote tags unavailable"
+    }
+}
+
+private struct ThrowingTagProvider: GitTagProviding {
+    func tags(for repositoryURL: String) throws -> [String] {
+        throw StubTagError.unavailable
+    }
+}
+
+private func runGit(_ arguments: [String], in directory: URL) throws {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+    process.arguments = ["git"] + arguments
+    process.currentDirectoryURL = directory
+    process.standardOutput = Pipe()
+    process.standardError = Pipe()
+    try process.run()
+    process.waitUntilExit()
+    #expect(process.terminationStatus == 0)
 }
 
 private struct StubVersionChecker: PackageVersionChecking {
