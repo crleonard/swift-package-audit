@@ -1,5 +1,10 @@
 # Swift Package Audit
 
+[![CI](https://github.com/crleonard/swift-package-audit/actions/workflows/ci.yml/badge.svg)](https://github.com/crleonard/swift-package-audit/actions/workflows/ci.yml)
+![Swift](https://img.shields.io/badge/Swift-6.0%2B-orange.svg)
+![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
 A SwiftPM health checker for real Xcode projects.
 
 Swift Package Audit diagnoses dependency health issues in Xcode SwiftPM setups by comparing what your project asks for against what Package.resolved actually pins.
@@ -43,7 +48,19 @@ Swift Package Audit intentionally avoids network calls during normal scans. Remo
 
 ## Installation
 
-Build from source:
+### Homebrew
+
+Homebrew support is planned for the public v1 release.
+
+### Mint
+
+Mint installs directly from a GitHub tag. Use this after a public release tag is available:
+
+```sh
+mint install crleonard/swift-package-audit@1.0.0
+```
+
+### From Source
 
 ```sh
 git clone https://github.com/crleonard/swift-package-audit.git
@@ -56,14 +73,6 @@ Run the built executable:
 ```sh
 .build/release/swift-package-audit scan --path /path/to/project
 ```
-
-Install with Mint:
-
-```sh
-mint install crleonard/swift-package-audit
-```
-
-Homebrew support is planned for a future release.
 
 ## Usage
 
@@ -85,38 +94,151 @@ swift-package-audit scan --write-baseline SwiftPackageAuditBaseline.json
 
 `--strict` is equivalent to `--fail-on warning`.
 
-## Example Output
+## Examples
+
+### Basic Scan
+
+Swift Package Audit scans Xcode project metadata and resolved pins without modifying project files.
+
+```sh
+swift-package-audit scan --path /Users/chrisleonard/Desktop/TESTPROJ
+```
 
 ```text
 Swift Package Audit
 
 Path:
-  /Users/chris/project
+  /Users/chrisleonard/Desktop/TESTPROJ
 
 Projects:
-  MyApp.xcodeproj
+  PackageDoctorPlayground.xcodeproj
 
 Swift packages:
-  12 referenced
-  12 resolved
+  7 referenced
+  8 resolved
 
 Health:
   1 info
-  3 warnings
-  1 errors
-
-Errors:
-  x Firebase
-     firebase-ios-sdk is referenced by the Xcode project, but it is missing from Package.resolved.
-     Suggestion: Run xcodebuild -resolvePackageDependencies.
+  4 warnings
+  0 errors
+  0 suppressed
 
 Warnings:
-  ! Lottie
+  ! nimble
+     Package appears with multiple URL forms: git@github.com:Quick/Nimble.git, https://github.com/Quick/Nimble.git.
+     Suggestion: Normalize package URLs to reduce duplicate identities and merge noise.
+  ! lottie-spm
      lottie-spm is pinned to branch 'main'.
      Suggestion: Prefer a versioned release for reproducible builds.
+  ! snapkit
+     snapkit is pinned to a raw revision.
+     Suggestion: Use a tagged version where possible.
+  ! swift-collections
+     swift-collections is present in Package.resolved, but it is not referenced by the Xcode project.
+     Suggestion: Remove stale resolved pins or re-resolve dependencies.
+
+Info:
+  i alamofire
+     alamofire is pinned to exact version 5.4.0.
+     Suggestion: This may be intentional, but it can block patch updates.
 ```
 
 Markdown output is designed for general reports. `pr-comment` output is designed for GitHub pull request comments. JSON output is pretty-printed with sorted keys and uses schema version `1`; see [Docs/JSON_SCHEMA.md](Docs/JSON_SCHEMA.md).
+
+### CI Gating
+
+Use `--fail-on`, `--strict`, or `failOn` config rules to make dependency health part of CI.
+
+```yaml
+failOn:
+  - branchDependency
+  - revisionDependency
+  - outdatedVersion
+
+rules:
+  requirePackageResolved: true
+  allowExactVersions: false
+```
+
+With that config, the sample scan reports findings and exits non-zero because branch and revision dependencies are present:
+
+```text
+Health:
+  1 info
+  4 warnings
+  0 errors
+  0 suppressed
+
+EXIT_CODE=1
+```
+
+Without a fail policy, the same findings are reported and the command exits successfully:
+
+```text
+EXIT_CODE=0
+```
+
+### Pull Request Comments
+
+Use `--format pr-comment` to generate GitHub-ready Markdown.
+
+```sh
+swift-package-audit scan --format pr-comment --fail-on error
+```
+
+```markdown
+## Swift Package Audit
+
+| Errors | Warnings | Info | Suppressed |
+| ---: | ---: | ---: | ---: |
+| 0 | 4 | 1 | 0 |
+
+<details open>
+<summary>Dependency health findings</summary>
+
+| Severity | Rule | Package | Message | Suggestion |
+| --- | --- | --- | --- | --- |
+| warning | branchDependency | lottie-spm | lottie-spm is pinned to branch 'main'. | Prefer a versioned release for reproducible builds. |
+| warning | revisionDependency | snapkit | snapkit is pinned to a raw revision. | Use a tagged version where possible. |
+| info | exactVersionDependency | alamofire | alamofire is pinned to exact version 5.4.0. | This may be intentional, but it can block patch updates. |
+
+</details>
+```
+
+### JSON Output
+
+Use JSON when you want stable automation and baselines.
+
+```sh
+swift-package-audit scan --format json
+```
+
+```json
+{
+  "schemaVersion": 1,
+  "rootPath": "/Users/chrisleonard/Desktop/TESTPROJ",
+  "workspacePaths": [
+    "/Users/chrisleonard/Desktop/TESTPROJ/PackageDoctorPlayground.xcworkspace"
+  ],
+  "resolvedFilePaths": [
+    "/Users/chrisleonard/Desktop/TESTPROJ/Package.resolved"
+  ],
+  "diagnostics": [
+    {
+      "id": "e6c165bfc92df4b0",
+      "rule": "duplicateURLForms",
+      "severity": "warning",
+      "packageIdentity": "nimble"
+    },
+    {
+      "id": "f04911d18fbf63aa",
+      "rule": "branchDependency",
+      "severity": "warning",
+      "packageIdentity": "lottie-spm"
+    }
+  ]
+}
+```
 
 ## Configuration
 
@@ -170,11 +292,18 @@ swift-package-audit scan --check
 This uses `git ls-remote --tags --refs` for packages that already have a version in `Package.resolved`. Swift Package Audit compares stable semantic version tags against the pinned version and reports findings like:
 
 ```text
-Package is on 1.0.0; latest is 2.0.0 (4 release tags behind: 1.1.0, 1.2.0, 1.2.1, 2.0.0).
-1 major release, 2 minor releases behind. The existing upToNextMajorVersion requirement does not allow the latest version.
+! alamofire
+   alamofire is on 5.4.0; latest is 5.12.0 (23 release tags behind: 5.4.1, 5.4.2, 5.4.3, 5.4.4, 5.5.0, 5.6.0, 5.6.1, 5.6.2, 5.6.3, 5.6.4, 5.7.0, 5.7.1, 5.8.0, 5.8.1, 5.9.0, 5.9.1, 5.10.0, 5.10.1, 5.10.2, 5.11.0, 5.11.1, 5.11.2, 5.12.0). 8 minor releases, 4 patch releases behind. The existing exactVersion requirement does not allow the latest version.
+   Suggestion: Review the package release notes and update when ready.
+
+Version checks:
+  i swift-argument-parser
+     Current: 1.8.2, no newer release tags found.
+  ! firebase-ios-sdk
+     Could not check 10.0.0: Timed out checking tags for https://github.com/firebase/firebase-ios-sdk.git
 ```
 
-Prerelease tags are ignored in this first version-check implementation. Swift Package Audit also reports whether the existing Xcode package requirement appears to allow the latest version.
+Prerelease tags are ignored in this first version-check implementation. Swift Package Audit also reports whether the existing Xcode package requirement appears to allow the latest version. Network failures are reported per package instead of aborting the whole scan.
 
 ## GitHub Actions
 
