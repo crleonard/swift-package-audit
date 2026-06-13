@@ -319,7 +319,7 @@ jobs:
   swift-package-audit:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: swift run swift-package-audit scan --format pr-comment --fail-on error
 ```
 

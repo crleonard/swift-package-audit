@@ -10,7 +10,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run Swift Package Audit
         run: swift run swift-package-audit scan --format pr-comment --fail-on error > swift-package-audit.md
       - name: Comment on PR
