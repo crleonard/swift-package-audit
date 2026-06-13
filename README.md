@@ -327,15 +327,7 @@ This repository also runs `swift build` and `swift test` in CI.
 
 ## Roadmap
 
-Swift Package Audit is ready for 1.0 release validation. Planned post-1.0 work includes:
-
-- stale dependency checks
-- latest release checks
-- license checks
-- CocoaPods support
-- Carthage support
-- security advisory checks
-- optional fix commands
+See [ROADMAP.md](ROADMAP.md) for planned features.
 
 ## License
 

@@ -9,10 +9,8 @@ Swift Package Audit is ready for 1.0 release validation. The JSON/reporting cont
 
 ## Post-1.0
 
-- Add optional latest-release and stale-dependency checks.
 - License checks.
 - CocoaPods support.
-- Carthage support.
 - Security advisory checks.
 - More package-host-specific release intelligence beyond Git tags.
 - Optional fix commands.
