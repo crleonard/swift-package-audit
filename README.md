@@ -9,7 +9,7 @@ A SwiftPM health checker for real Xcode projects.
 
 Swift Package Audit diagnoses dependency health issues in Xcode SwiftPM setups by comparing what your project asks for against what Package.resolved actually pins.
 
-Status: release candidate. Swift Package Audit is read-only, does not update packages, and does not edit `project.pbxproj` files.
+Status: stable v1.0.0. Swift Package Audit is read-only, does not update packages, and does not edit `project.pbxproj` files.
 
 ## Why Swift Package Audit Exists
 
@@ -50,11 +50,14 @@ Swift Package Audit intentionally avoids network calls during normal scans. Remo
 
 ### Homebrew
 
-Homebrew support is planned for the public v1 release.
+```sh
+brew tap crleonard/tap
+brew install swift-package-audit
+```
 
 ### Mint
 
-Mint installs directly from a GitHub tag. Use this after a public release tag is available:
+Mint installs directly from a GitHub tag:
 
 ```sh
 mint install crleonard/swift-package-audit@1.0.0
