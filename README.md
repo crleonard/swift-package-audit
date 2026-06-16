@@ -1,7 +1,7 @@
 # Swift Package Audit
 
 [![CI](https://github.com/crleonard/swift-package-audit/actions/workflows/ci.yml/badge.svg)](https://github.com/crleonard/swift-package-audit/actions/workflows/ci.yml)
-![Swift](https://img.shields.io/badge/Swift-6.0%2B-orange.svg)
+[![Swift Package Index](https://img.shields.io/endpoint?url=https://swiftpackageindex.com/api/packages/crleonard/swift-package-audit/badge?type=swift-versions)](https://swiftpackageindex.com/crleonard/swift-package-audit)
 ![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
