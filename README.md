@@ -6,15 +6,12 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 A SwiftPM health checker for real Xcode projects.
-
 Swift Package Audit diagnoses dependency health issues in Xcode SwiftPM setups by comparing what your project asks for against what Package.resolved actually pins.
-
 Status: stable v1.0.0. Swift Package Audit is read-only, does not update packages, and does not edit `project.pbxproj` files.
 
 ## Why Swift Package Audit Exists
 
 Many iOS and macOS teams do not manage dependencies through `Package.swift` alone. Real Xcode projects often include:
-
 - `.xcodeproj/project.pbxproj`
 - `.xcworkspace`
 - `Package.resolved` files inside project or workspace folders
@@ -27,7 +24,6 @@ Swift Package Audit is dependency tooling, not UI tooling. It works from project
 ## What It Checks Today
 
 The current MVP scans for:
-
 - Xcode projects, workspaces, `Package.swift`, and `Package.resolved`
 - Xcode Swift package references in `project.pbxproj`
 - modern and legacy `Package.resolved` pin formats
@@ -47,7 +43,6 @@ The current MVP scans for:
 Swift Package Audit intentionally avoids network calls during normal scans. Remote version checks only run when you pass `--check`.
 
 ## Installation
-
 ### Homebrew
 
 ```sh
@@ -56,7 +51,6 @@ brew install swift-package-audit
 ```
 
 ### Mint
-
 Mint installs directly from a GitHub tag:
 
 ```sh
@@ -100,7 +94,6 @@ swift-package-audit scan --write-baseline SwiftPackageAuditBaseline.json
 ## Examples
 
 ### Basic Scan
-
 Swift Package Audit scans Xcode project metadata and resolved pins without modifying project files.
 
 ```sh
@@ -149,7 +142,6 @@ Info:
 Markdown output is designed for general reports. `pr-comment` output is designed for GitHub pull request comments. JSON output is pretty-printed with sorted keys and uses schema version `1`; see [Docs/JSON_SCHEMA.md](Docs/JSON_SCHEMA.md).
 
 ### CI Gating
-
 Use `--fail-on`, `--strict`, or `failOn` config rules to make dependency health part of CI.
 
 ```yaml
@@ -329,9 +321,7 @@ jobs:
 This repository also runs `swift build` and `swift test` in CI.
 
 ## Roadmap
-
 See [ROADMAP.md](ROADMAP.md) for planned features.
 
 ## License
-
 Swift Package Audit is released under the MIT License.

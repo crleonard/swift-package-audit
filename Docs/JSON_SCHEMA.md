@@ -1,7 +1,6 @@
 # JSON Output Schema
 
 Swift Package Audit JSON output is versioned with `schemaVersion`.
-
 The current schema version is `1`. Patch releases may add optional fields, but existing fields in schema version 1 should remain stable throughout the 1.x line.
 
 Generate JSON with:
@@ -47,7 +46,6 @@ Each diagnostic includes a stable `id` suitable for baselines:
 ## Rules
 
 Known rule identifiers:
-
 - `missingPackageResolved`
 - `packageReferencedButNotResolved`
 - `packageResolvedButNotReferenced`
@@ -63,7 +61,6 @@ Known rule identifiers:
 ## Severity
 
 Known severities:
-
 - `info`
 - `warning`
 - `error`
@@ -80,7 +77,6 @@ swift-package-audit scan --baseline SwiftPackageAuditBaseline.json
 Diagnostics matched by the baseline are moved from `diagnostics` to `suppressedDiagnostics`.
 
 ## Version Checks
-
 `versionChecks` is populated only when scans run with `--check`.
 
 ```json

@@ -1,7 +1,6 @@
 # Contributing
 
 Thanks for your interest in Swift Package Audit.
-
 Swift Package Audit is pre-1.0 and currently read-only. Contributions should preserve that boundary unless a future milestone explicitly introduces write or fix operations.
 
 ## Development
